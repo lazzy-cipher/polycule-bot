@@ -21,6 +21,7 @@ const (
 	ReplyToTypingChance  = 0.005 // 0.5%
 	ReplyToReplyChance   = 1.0   // 1.0%
 	ReplyToMessageChance = 0.02  // 2%
+	ReactToMessageChance = 0.05  // 5%
 	Version              = "1.0.0"
 )
 
@@ -259,6 +260,13 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 			reply(s, m.Message)
 		}
 		return
+	}
+
+	if rand.Float64() <= ReactToMessageChance {
+		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
 	}
 
 	if mentionsBot(s, m.Message) || rand.Float64() <= ReplyToMessageChance {
