@@ -238,6 +238,15 @@ func react(s *discordgo.Session, m *discordgo.Message) {
 	})
 }
 
+func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
+	for _, u := range m.Mentions {
+		if u.ID == s.State.User.ID {
+			return true
+		}
+	}
+	return false
+}
+
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// ignore bots, including yourself
 	if m.Author.Bot {
@@ -252,7 +261,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if rand.Float64() <= ReplyToMessageChance {
+	if mentionsBot(s, m.Message) || rand.Float64() <= ReplyToMessageChance {
 		react(s, m.Message)
 	}
 }
