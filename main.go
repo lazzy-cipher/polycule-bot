@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 )
 
 const (
+	AdminID              = "254331907351904256"  // lazarus_overlook
 	WelcomeChannelID     = "1532401026924150947" // chitchat
 	WelcomeStickerID     = "1532410779469615288" // Lazzy Showoff
 	WelcomeRoleID        = "1532412593816338482" // goober
@@ -22,7 +24,8 @@ const (
 	ReplyToReplyChance   = 1.0   // 1.0%
 	ReplyToMessageChance = 0.02  // 2%
 	ReactToMessageChance = 0.05  // 5%
-	Version              = "1.0.0"
+	Version              = "1.0.1"
+	TimeBeforeBored      = 2 * time.Hour
 )
 
 var (
@@ -40,6 +43,43 @@ var (
 		"uwu",
 		">>",
 		">//>",
+	}
+	Replies = [...]string{
+		"uhuh",
+		"oo",
+		"oki!",
+		"?",
+		"",
+		"*rolls over*",
+		"zip! ziip zip!",
+		"wow",
+		"mm mm mm",
+		"true",
+		"*flops*",
+		"ooh",
+		"okok",
+		"hm",
+		"idk seems kinda sus",
+		"that's so based omg",
+		"yeah no that's totally it actually",
+		"why are you like this",
+		"Unnnfhg...",
+		"!!!",
+		"a- are you sure...?",
+		"whatever goob, I ain't gonna listent to a goob",
+		"uh- a- uh- y-you pwettyy...",
+		"so we're not gonna talk about what you sent me in dms???",
+		"uh- you talk a lot uh- *impregnates you*, there, now shush",
+		"woa",
+		"oh really",
+		"that's crazy",
+		"idk im just not feeling it too too much",
+		"ah okay anyway HANGOUT WHEN???",
+		"trans lives matter most of the time!",
+		"im so full.......",
+	}
+	ReplyChannelBlacklist = [...]string{
+		"1532407644919431218",
 	}
 )
 
@@ -72,7 +112,7 @@ Written by Lazzy L. Cipher.
 
 	var dg, err = discordgo.New("Bot " + Token)
 	if err != nil {
-		log.Fatal("error creating Discord session,", err)
+		log.Fatal("[ERROR] cannot create Discord session:", err)
 	}
 
 	dg.Identify.Intents = discordgo.IntentsGuilds |
@@ -87,7 +127,7 @@ Written by Lazzy L. Cipher.
 
 	err = dg.Open()
 	if err != nil {
-		log.Fatal("error opening connection,", err)
+		log.Fatal("[ERROR] cannot open connection:", err)
 	}
 	defer dg.Close()
 
@@ -144,13 +184,27 @@ func welcomeMessage(s *discordgo.Session, m *discordgo.Member) {
 	}
 }
 
+func notifyAdmin(s *discordgo.Session, message string) {
+	dmChannel, err := s.UserChannelCreate(AdminID)
+	if err != nil {
+		log.Println("[ERROR] cannot create DM channel with admin", err)
+		return
+	}
+
+	_, err = s.ChannelMessageSend(dmChannel.ID, message)
+	if err != nil {
+		log.Println("[ERROR] cannot send DM to admin:", err)
+	}
+}
+
 func guildMemberAdd(s *discordgo.Session, e *discordgo.GuildMemberAdd) {
 	var err = s.GuildMemberRoleAdd(e.GuildID, e.User.ID, WelcomeRoleID)
 	if err != nil {
-		log.Println("error adding role:", err)
+		log.Println("[ERROR cannot add role:", err)
 	}
 
 	welcomeMessage(s, e.Member)
+	notifyAdmin(s, fmt.Sprintf("Hiiii Laz!! Btw, new member: <@%s> :3", e.User.ID))
 }
 
 func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
@@ -177,32 +231,15 @@ func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 	var msg = fmt.Sprintf("%s %s", message, getRandEmoticon())
 	var _, err = s.ChannelMessageSend(e.ChannelID, msg)
 	if err != nil {
-		log.Println("error sending welcome message,", err)
+		log.Println("[ERROR] cannot send welcome message:", err)
 	}
 }
 
 func reply(s *discordgo.Session, m *discordgo.Message) {
 	time.Sleep(ReplyTime)
 
-	var availableMessages = [...]string{
-		"uhuh",
-		"oo",
-		"oki!",
-		"?",
-		"",
-		"*rolls over*",
-		"zip! ziip zip!",
-		"wow",
-		"mm mm mm",
-		"true",
-		"*flops*",
-		"ooh",
-		"okok",
-		"hm",
-	}
-
-	var messageIdx = rand.IntN(len(availableMessages))
-	var message = fmt.Sprintf("%s %s", availableMessages[messageIdx], getRandEmoticon())
+	var messageIdx = rand.IntN(len(Replies))
+	var message = fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
 
 	s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 		Content:   message,
@@ -213,25 +250,8 @@ func reply(s *discordgo.Session, m *discordgo.Message) {
 func react(s *discordgo.Session, m *discordgo.Message) {
 	time.Sleep(ReplyTime)
 
-	var availableMessages = [...]string{
-		"uhuh",
-		"oo",
-		"oki!",
-		"?",
-		"",
-		"*rolls over*",
-		"zip! ziip zip!",
-		"wow",
-		"mm mm mm",
-		"true",
-		"*flops*",
-		"ooh",
-		"okok",
-		"hm",
-	}
-
-	var messageIdx = rand.IntN(len(availableMessages))
-	var message = fmt.Sprintf("%s %s", availableMessages[messageIdx], getRandEmoticon())
+	var messageIdx = rand.IntN(len(Replies))
+	var message = fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
 
 	s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 		Content:   message,
@@ -251,6 +271,11 @@ func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// ignore bots, including yourself
 	if m.Author.Bot {
+		return
+	}
+
+	// Ignore blacklisted channels (like chitchat)
+	if slices.Contains(ReplyChannelBlacklist[:], m.ChannelID) {
 		return
 	}
 
