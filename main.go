@@ -14,18 +14,20 @@ import (
 )
 
 const (
-	WelcomeChannelID = "1532401026924150947" // chitchat
-	WelcomeStickerID = "1532410779469615288" // Lazzy Showoff
-	WelcomeRoleID    = "1532412593816338482" // goober
-	ReplyTime        = 2 * time.Second
-	ReplyToTypingChance = 0.005 // 0.5%
-	ReplyToReplyChance  = 1.0 // 1.0%
-	ReplyToMessageChance = 0.02 // 2%
+	WelcomeChannelID     = "1532401026924150947" // chitchat
+	WelcomeStickerID     = "1532410779469615288" // Lazzy Showoff
+	WelcomeRoleID        = "1532412593816338482" // goober
+	ReplyTime            = 2 * time.Second
+	ReplyToTypingChance  = 0.005 // 0.5%
+	ReplyToReplyChance   = 1.0   // 1.0%
+	ReplyToMessageChance = 0.02  // 2%
+	Version              = "1.0.0"
 )
 
 var (
-	Token            string
-	Emoticons        = [...]string{
+	Token       string
+	ShowVersion bool
+	Emoticons   = [...]string{
 		":3",
 		">w<",
 		"x3",
@@ -42,10 +44,23 @@ var (
 
 func init() {
 	flag.StringVar(&Token, "token", "", "Bot Token")
+	flag.BoolVar(&ShowVersion, "version", false, "Print version and exit")
 	flag.Parse()
 }
 
 func main() {
+	if ShowVersion {
+		fmt.Printf(`Polycule Bot v%s
+Copyright (C) 2026 lazzy.cipher@proton.me.
+License 0BSD: Zero-Clause BSD <https://opensource.org/license/0bsd>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by Lazzy L. Cipher.
+`, Version)
+		os.Exit(0)
+	}
+
 	if Token == "" {
 		Token = os.Getenv("DISCORD_BOT_TOKEN")
 	}
@@ -64,7 +79,6 @@ func main() {
 		discordgo.IntentGuildMessageTyping |
 		discordgo.IntentGuildMessages |
 		discordgo.IntentMessageContent
-
 
 	dg.AddHandler(guildMemberStartsTyping)
 	dg.AddHandler(guildMemberAdd)
