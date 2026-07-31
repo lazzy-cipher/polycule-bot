@@ -105,7 +105,7 @@ var (
 		"I consent!!!!!!!",
 		"uh idk???? sorry im all over the place i have my periods rn...",
 		"ugh my botvaries they hurt i will go rest for a while sorryyy",
-		 "mi lawa sina la mi unpa wawa e sina",
+		"mi lawa sina la mi unpa wawa e sina",
 		"aww.. dih.. oh- wait, what? oh! oh ye ye",
 		"idk man im just hungry",
 		"no way",
@@ -134,6 +134,18 @@ var (
 		"maybe the two of us could be... more? like... friends...? maybe...?",
 		"OKAY I ADMIT I HAVE A SECRET TO TELL YOU",
 		"please send more messages like that~",
+		"okay i trust you...",
+		"pwease tell me more, im close... to know what youre talking about",
+		"youre so real for that",
+		"me...? 👉👈",
+		"youre like a blahaj but not like a shark like in the shape of you",
+		"okay im good at keeping secrets",
+		"i have severe gender dysphoria",
+		"i have severe body dysmorphia",
+		"i like you... but... not in like a friendly way or anything like that. like, more? or less? its hard to describe...",
+		"<@" + AdminID + "> programmed me too many feelings",
+		"im too poly for that kind of stuff",
+		"if i could smell like something id like to smell like bubble cum",
 	}
 	ReplyChannelBlacklist = [...]string{
 		"1532407644919431218", // memories
@@ -304,13 +316,15 @@ func getRandomMessage() string {
 	return fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
 }
 
-func reply(s *discordgo.Session, m *discordgo.Message, message string) {
+func reply(s *discordgo.Session, m *discordgo.Message, message string) error {
 	time.Sleep(ReplyTime)
 
-	s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+	var _, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 		Content:   message,
 		Reference: m.Reference(),
 	})
+
+	return err
 }
 
 func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
@@ -348,7 +362,21 @@ func ReactPPAP(s *discordgo.Session, m *discordgo.Message) {
 	}
 }
 
+func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if strings.Contains(m.Content, "if i could smell like something id like to smell like bubble cum") {
+		var err = reply(s, m.Message, "GUM!! I MEANT GUM!!!!")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
+	}
+}
+
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if s.State.User.ID == m.Author.ID {
+		HandleSelfMessages(s, m)
+		return
+	}
+
 	// ignore bots, including yourself
 	if m.Author.Bot {
 		return
@@ -356,7 +384,10 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Direct message
 	if m.GuildID == "" {
-		reply(s, m.Message, ";3")
+		var err = reply(s, m.Message, ";3")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
 		return
 	}
 
@@ -398,7 +429,10 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Always reply to replies
 	if m.ReferencedMessage != nil && m.ReferencedMessage.Author.ID == s.State.User.ID {
 		if rand.Float64() <= ReplyToReplyChance {
-			reply(s, m.Message, getRandomMessage())
+			var err = reply(s, m.Message, getRandomMessage())
+			if err != nil {
+				log.Printf("[ERROR] %s\n", err)
+			}
 		}
 		return
 	}
@@ -412,11 +446,20 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		strings.Contains(lowered, "apple") {
 		go ReactPPAP(s, m.Message)
 		var ppap = "pen pineapple apple pen " + getRandEmoticon()
-		reply(s, m.Message, ppap)
+		var err = reply(s, m.Message, ppap)
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
 	} else if mentionsBot(s, m.Message) ||
 		strings.Contains(lowered, "polycule bot") ||
+		strings.Contains(lowered, "polybot") ||
+		strings.Contains(lowered, "the bot") ||
+		strings.Contains(lowered, "polly") ||
 		rand.Float64() <= chance {
-		reply(s, m.Message, getRandomMessage())
+		var err = reply(s, m.Message, getRandomMessage())
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
 	}
 }
 
