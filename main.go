@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -31,12 +32,15 @@ const (
 	ReactToMessageChance             = 0.04  // 4%
 	Version                          = "1.0.2"
 	TimeBeforeBored                  = 2 * time.Hour
+	ShutUpTime                       = 2 * time.Hour
 )
 
 var (
 	Token           string
 	ShowVersion     bool
 	ResetBoredTimer = make(chan struct{})
+	ShutUpSignal    = make(chan struct{})
+	IsShutUp atomic.Bool
 	Emoticons       = [...]string{
 		":3",
 		";3",
@@ -312,6 +316,10 @@ func guildMemberAdd(s *discordgo.Session, e *discordgo.GuildMemberAdd) {
 }
 
 func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
+	if IsShutUp.Load() {
+		return
+	}
+
 	if rand.Float64() > ReplyToTypingChance ||
 		slices.Contains(BlacklistedUsers[:], e.UserID) {
 		return
@@ -427,6 +435,10 @@ func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if IsShutUp.Load() {
+		return
+	}
+
 	if s.State.User.ID == m.Author.ID {
 		HandleSelfMessages(s, m)
 		return
@@ -464,6 +476,20 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	var lowered = strings.ToLower(m.Content)
+	var talksAboutSelf = mentionsBot(s, m.Message) ||
+		strings.Contains(lowered, "polycule bot") ||
+		strings.Contains(lowered, "polybot") ||
+		strings.Contains(lowered, "the bot") ||
+		strings.Contains(lowered, "polly")
+
+	if talksAboutSelf &&
+		strings.Contains(lowered, "shut") &&
+		strings.Contains(lowered, "up") {
+		select {
+		case ShutUpSignal <- struct{}{}:
+		default:
+		}
+	}
 
 	// Mpreg react, sometimes
 	if strings.Contains(lowered, "fpreg") {
@@ -480,8 +506,6 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Printf("[ERROR] %s\n", err)
 		}
 	}
-
-	// todo: add comments when other users are mentioned
 
 	// Always reply to replies
 	if m.ReferencedMessage != nil && m.ReferencedMessage.Author.ID == s.State.User.ID {
@@ -507,11 +531,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
-	} else if mentionsBot(s, m.Message) ||
-		strings.Contains(lowered, "polycule bot") ||
-		strings.Contains(lowered, "polybot") ||
-		strings.Contains(lowered, "the bot") ||
-		strings.Contains(lowered, "polly") ||
+	} else if talksAboutSelf &&
 		rand.Float64() <= chance {
 		var err = replyRandom(s, m.Message)
 		if err != nil {
@@ -520,8 +540,54 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
+func shutUpDetector(s *discordgo.Session) {
+	var timer = time.NewTimer(ShutUpTime)
+	timer.Stop()
+
+	var shutUpMessages = [...]string{
+		"aww ok... :c",
+		"im gonna go...",
+		"but- ok... :c",
+		"*sadly waddles away* :c",
+		":c",
+		"fine..",
+	}
+
+	var comeBackMessages = [...]string{
+		"can i talk again now? :c",
+		"i missed you... ;-;",
+		"was alone too long, wept, better now",
+		"i was so along for so long... anyone wanna give me kisses? ;w;",
+		"*hugs closest person* i was too quiet too long i got anxious... ;w;",
+	}
+
+	for {
+		select {
+		case <-ShutUpSignal:
+			timer.Reset(ShutUpTime)
+
+			if !IsShutUp.Load() {
+				IsShutUp.Store(true)
+				var msg = shutUpMessages[rand.IntN(len(shutUpMessages))]
+				_, err := s.ChannelMessageSend(WelcomeChannelID, msg)
+				if err != nil {
+					log.Println("[ERROR] cannot send shut-up message:", err)
+				}
+			}
+
+		case <-timer.C:
+			IsShutUp.Store(false)
+			var msg = comeBackMessages[rand.IntN(len(comeBackMessages))]
+			_, err := s.ChannelMessageSend(WelcomeChannelID, msg)
+			if err != nil {
+				log.Println("[ERROR] cannot send come-back message:", err)
+			}
+		}
+	}
+}
+
 func boredTimerLoop(s *discordgo.Session) {
-	timer := time.NewTimer(TimeBeforeBored)
+	var timer = time.NewTimer(TimeBeforeBored)
 	var alreadySaidBored = false
 	defer timer.Stop()
 
@@ -540,7 +606,7 @@ func boredTimerLoop(s *discordgo.Session) {
 	for {
 		select {
 		case <-timer.C:
-			if alreadySaidBored {
+			if alreadySaidBored || IsShutUp.Load() {
 				timer.Reset(TimeBeforeBored)
 				continue
 			}
