@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"slices"
+	"strings"
 	"syscall"
 	"time"
 
@@ -95,9 +96,13 @@ var (
 		"youd look so cute pregnant, you know that?",
 		"shhh~ <3",
 		"i dont regret what we did last night~",
+		"whatever!!!!! you said we were going to costco to get candy and hot dogs!!! are we going soon??",
 	}
 	ReplyChannelBlacklist = [...]string{
-		"1532407644919431218",
+		"1532407644919431218", // memories
+	}
+	BlacklistedUsers = [...]string {
+		"1466282667258675324", // bardownbuddy
 	}
 )
 
@@ -228,7 +233,8 @@ func guildMemberAdd(s *discordgo.Session, e *discordgo.GuildMemberAdd) {
 }
 
 func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
-	if rand.Float64() > ReplyToTypingChance {
+	if rand.Float64() > ReplyToTypingChance ||
+		slices.Contains(BlacklistedUsers[:], e.UserID) {
 		return
 	}
 
@@ -267,18 +273,6 @@ func reply(s *discordgo.Session, m *discordgo.Message) {
 	})
 }
 
-func react(s *discordgo.Session, m *discordgo.Message) {
-	time.Sleep(ReplyTime)
-
-	var messageIdx = rand.IntN(len(Replies))
-	var message = fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
-
-	s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-		Content:   message,
-		Reference: m.Reference(),
-	})
-}
-
 func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
 	for _, u := range m.Mentions {
 		if u.ID == s.State.User.ID {
@@ -301,15 +295,29 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
+	// Ignore blacklisted users
+	if slices.Contains(BlacklistedUsers[:], m.Author.ID) {
+		return
+	}
+
 	// Ignore blacklisted channels (like chitchat)
 	if slices.Contains(ReplyChannelBlacklist[:], m.ChannelID) {
 		return
 	}
 
+	var lowered = strings.ToLower(m.Content)
+
 	// Mpreg react, sometimes
-	if rand.Float64() <= ReactToMessageChance {
+	if rand.Float64() <= ReactToMessageChance || strings.Contains(lowered, "preg") {
 		time.Sleep(ReactTime)
 		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
+	}
+	if strings.Contains(lowered, "fpreg") {
+		time.Sleep(ReactTime)
+		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🤰")
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
@@ -323,8 +331,10 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if mentionsBot(s, m.Message) || rand.Float64() <= ReplyToMessageChance {
-		react(s, m.Message)
+	if mentionsBot(s, m.Message) ||
+		strings.Contains(lowered, "polycule bot") ||
+		rand.Float64() <= ReplyToMessageChance {
+		reply(s, m.Message)
 	}
 }
 
