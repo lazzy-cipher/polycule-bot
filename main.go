@@ -168,6 +168,7 @@ var (
 	}
 	ReplyChannelBlacklist = [...]string{
 		"1532407644919431218", // memories
+		"1532859568453849118", // tenants-only
 	}
 	BlacklistedUsers = [...]string{
 		"1466282667258675324", // bardownbuddy
