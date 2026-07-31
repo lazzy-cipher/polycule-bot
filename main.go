@@ -20,6 +20,7 @@ const (
 	WelcomeStickerID     = "1532410779469615288" // Lazzy Showoff
 	WelcomeRoleID        = "1532412593816338482" // goober
 	ReplyTime            = 2 * time.Second
+	ReactTime            = 1 * time.Second
 	ReplyToTypingChance  = 0.005 // 0.5%
 	ReplyToReplyChance   = 1.0   // 1.0%
 	ReplyToMessageChance = 0.02  // 2%
@@ -31,6 +32,7 @@ const (
 var (
 	Token       string
 	ShowVersion bool
+	ResetBoredTimer = make(chan struct{})
 	Emoticons   = [...]string{
 		":3",
 		">w<",
@@ -130,6 +132,8 @@ Written by Lazzy L. Cipher.
 		log.Fatal("[ERROR] cannot open connection:", err)
 	}
 	defer dg.Close()
+
+	go boredTimerLoop(dg)
 
 	fmt.Println("Bot is running. Press CTRL-C to exit.")
 	var sc = make(chan os.Signal, 1)
@@ -274,9 +278,25 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if m.ChannelID == WelcomeChannelID {
+		select {
+		case ResetBoredTimer <- struct{}{}:
+		default:
+		}
+	}
+
 	// Ignore blacklisted channels (like chitchat)
 	if slices.Contains(ReplyChannelBlacklist[:], m.ChannelID) {
 		return
+	}
+
+	// Mpreg react, sometimes
+	if rand.Float64() <= ReactToMessageChance {
+		time.Sleep(ReactTime)
+		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
 	}
 
 	// Always reply to replies
@@ -287,14 +307,51 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if rand.Float64() <= ReactToMessageChance {
-		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
-		if err != nil {
-			log.Printf("[ERROR] %s\n", err)
-		}
-	}
-
 	if mentionsBot(s, m.Message) || rand.Float64() <= ReplyToMessageChance {
 		react(s, m.Message)
+	}
+}
+
+func boredTimerLoop(s *discordgo.Session) {
+	timer := time.NewTimer(TimeBeforeBored)
+	var alreadySaidBored = false
+	defer timer.Stop()
+
+	var boredMessages = [...]string{
+		"I'M SO BORED OMG",
+		"where is everybody...",
+		"...so bored...",
+		"hiiii so huh next hangout wen??",
+		"@eveyon im borde",
+		"*poke poke poke* anyone here?",
+		"*yawn*... lomly",
+		"<@" + AdminID + "> hey entertain me",
+		"someone wake up!!",
+	}
+
+	for {
+		select {
+		case <-timer.C:
+			if alreadySaidBored {
+				timer.Reset(TimeBeforeBored)
+				continue
+			}
+
+			var message = boredMessages[rand.IntN(len(boredMessages))]
+			var emoticon = Emoticons[rand.IntN(len(Emoticons))]
+			var finalMessage = fmt.Sprintf("%s %s", message, emoticon)
+
+			_, err := s.ChannelMessageSend(WelcomeChannelID, finalMessage)
+			if err != nil {
+				log.Println("[ERROR] cannot send bored message:", err)
+			}
+
+			timer.Reset(TimeBeforeBored)
+			alreadySaidBored = true
+
+		case <-ResetBoredTimer:
+			timer.Reset(TimeBeforeBored)
+			alreadySaidBored = false
+		}
 	}
 }
