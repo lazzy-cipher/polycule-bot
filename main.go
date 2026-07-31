@@ -42,6 +42,7 @@ var (
 	DebugBuild      bool
 	ResetBoredTimer = make(chan struct{})
 	ShutUpSignal    = make(chan struct{})
+	ComeBackSignal  = make(chan struct{})
 	IsShutUp atomic.Bool
 	Emoticons       = [...]string{
 		":3",
@@ -166,7 +167,33 @@ var (
 		"*cute autistic stimming*",
 		"*gets constipated from joy* AAA why does it always do that!!",
 	}
-	ReplyChannelBlacklist = [...]string{
+	BoredMessages = [...]string{
+		"I'M SO BORED OMG",
+		"where is everybody...",
+		"...so bored...",
+		"hiiii so huh next hangout wen??",
+		"@eveyon im borde",
+		"*poke poke poke* anyone here?",
+		"*yawn*... lomly",
+		"<@" + AdminID + "> hey entertain me",
+		"someone wake up!!",
+	}
+	ShutUpMessages = [...]string{
+		"aww ok... :c",
+		"im gonna go...",
+		"but- ok... :c",
+		"*sadly waddles away* :c",
+		":c",
+		"fine..",
+	}
+	ComeBackMessages = [...]string{
+		"can i talk again now? :c",
+		"i missed you... ;-;",
+		"was alone too long, wept, better now",
+		"i was so along for so long... anyone wanna give me kisses? ;w;",
+		"*hugs closest person* i was too quiet too long i got anxious... ;w;",
+	}
+	ReplyChannelBlacklist = []string{
 		"1532407644919431218", // memories
 		"1532859568453849118", // tenants-only
 	}
@@ -207,6 +234,8 @@ Written by Lazzy L. Cipher.
 
 	if DebugBuild {
 		log.Println("[DEBUG] running in debug mode, redirecting output to:", DebugChannelID)
+	} else {
+		ReplyChannelBlacklist = append(ReplyChannelBlacklist, DebugChannelID)
 	}
 
 	var dg, err = discordgo.New("Bot " + Token)
@@ -529,6 +558,16 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if talksAboutSelf &&
+		strings.Contains(lowered, "come") &&
+		strings.Contains(lowered, "back") {
+		select {
+		case ComeBackSignal <- struct{}{}:
+		default:
+		}
+		return
+	}
+
 	if IsShutUp.Load() {
 		return
 	}
@@ -576,7 +615,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
-	} else if talksAboutSelf &&
+	} else if talksAboutSelf ||
 		rand.Float64() <= chance {
 		var err = replyRandom(s, m.Message)
 		if err != nil {
@@ -589,26 +628,20 @@ func shutUpDetector(s *discordgo.Session) {
 	var timer = time.NewTimer(ShutUpTime)
 	timer.Stop()
 
-	var shutUpMessages = [...]string{
-		"aww ok... :c",
-		"im gonna go...",
-		"but- ok... :c",
-		"*sadly waddles away* :c",
-		":c",
-		"fine..",
-	}
-
-	var comeBackMessages = [...]string{
-		"can i talk again now? :c",
-		"i missed you... ;-;",
-		"was alone too long, wept, better now",
-		"i was so along for so long... anyone wanna give me kisses? ;w;",
-		"*hugs closest person* i was too quiet too long i got anxious... ;w;",
-	}
-
 	var channelID = WelcomeChannelID
 	if DebugBuild {
 		channelID = DebugChannelID
+	}
+
+	var sendMsg = func(msg string) {
+		if DebugBuild {
+			msg = "[DEBUG] " + msg
+		}
+		time.Sleep(ReplyTime)
+		_, err := s.ChannelMessageSend(channelID, msg)
+		if err != nil {
+			log.Println("[ERROR] cannot send message:", err)
+		}
 	}
 
 	for {
@@ -618,26 +651,23 @@ func shutUpDetector(s *discordgo.Session) {
 
 			if !IsShutUp.Load() {
 				IsShutUp.Store(true)
-				var msg = shutUpMessages[rand.IntN(len(shutUpMessages))]
-				if DebugBuild {
-					msg = "[DEBUG] " + msg
-				}
-				_, err := s.ChannelMessageSend(channelID, msg)
-				if err != nil {
-					log.Println("[ERROR] cannot send shut-up message:", err)
-				}
+				var msg = ShutUpMessages[rand.IntN(len(ShutUpMessages))]
+				sendMsg(msg)
 			}
+
+		case <-ComeBackSignal:
+			if IsShutUp.Load() {
+				timer.Stop()
+				IsShutUp.Store(false)
+				var msg = ComeBackMessages[rand.IntN(len(ComeBackMessages))]
+				sendMsg(msg)
+			}
+			// if not shut up, this is a no-op — nothing to come back from
 
 		case <-timer.C:
 			IsShutUp.Store(false)
-			var msg = comeBackMessages[rand.IntN(len(comeBackMessages))]
-			if DebugBuild {
-				msg = "[DEBUG] " + msg
-			}
-			_, err := s.ChannelMessageSend(channelID, msg)
-			if err != nil {
-				log.Println("[ERROR] cannot send come-back message:", err)
-			}
+			var msg = ComeBackMessages[rand.IntN(len(ComeBackMessages))]
+			sendMsg(msg)
 		}
 	}
 }
@@ -647,18 +677,6 @@ func boredTimerLoop(s *discordgo.Session) {
 	var alreadySaidBored = false
 	defer timer.Stop()
 
-	var boredMessages = [...]string{
-		"I'M SO BORED OMG",
-		"where is everybody...",
-		"...so bored...",
-		"hiiii so huh next hangout wen??",
-		"@eveyon im borde",
-		"*poke poke poke* anyone here?",
-		"*yawn*... lomly",
-		"<@" + AdminID + "> hey entertain me",
-		"someone wake up!!",
-	}
-
 	for {
 		select {
 		case <-timer.C:
@@ -667,7 +685,7 @@ func boredTimerLoop(s *discordgo.Session) {
 				continue
 			}
 
-			var message = boredMessages[rand.IntN(len(boredMessages))]
+			var message = BoredMessages[rand.IntN(len(BoredMessages))]
 			var emoticon = Emoticons[rand.IntN(len(Emoticons))]
 			var finalMessage = fmt.Sprintf("%s %s", message, emoticon)
 			if DebugBuild {
