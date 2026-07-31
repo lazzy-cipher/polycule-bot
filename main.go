@@ -32,10 +32,10 @@ const (
 )
 
 var (
-	Token       string
-	ShowVersion bool
+	Token           string
+	ShowVersion     bool
 	ResetBoredTimer = make(chan struct{})
-	Emoticons   = [...]string{
+	Emoticons       = [...]string{
 		":3",
 		">w<",
 		"x3",
@@ -101,7 +101,7 @@ var (
 	ReplyChannelBlacklist = [...]string{
 		"1532407644919431218", // memories
 	}
-	BlacklistedUsers = [...]string {
+	BlacklistedUsers = [...]string{
 		"1466282667258675324", // bardownbuddy
 	}
 )
@@ -308,16 +308,16 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var lowered = strings.ToLower(m.Content)
 
 	// Mpreg react, sometimes
-	if rand.Float64() <= ReactToMessageChance || strings.Contains(lowered, "preg") {
-		time.Sleep(ReactTime)
-		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
-		if err != nil {
-			log.Printf("[ERROR] %s\n", err)
-		}
-	}
 	if strings.Contains(lowered, "fpreg") {
 		time.Sleep(ReactTime)
 		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🤰")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
+	} else if rand.Float64() <= ReactToMessageChance ||
+		strings.Contains(lowered, "preg") {
+		time.Sleep(ReactTime)
+		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
