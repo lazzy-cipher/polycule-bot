@@ -41,8 +41,8 @@ var (
 	ShowVersion     bool
 	DebugBuild      bool
 	ResetBoredTimer = make(chan struct{})
-	ShutUpSignal    = make(chan struct{})
-	ComeBackSignal  = make(chan struct{})
+	ShutUpSignal    = make(chan *discordgo.Message)
+	ComeBackSignal  = make(chan *discordgo.Message)
 	IsShutUp atomic.Bool
 	Emoticons       = [...]string{
 		":3",
@@ -552,7 +552,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		strings.Contains(lowered, "shut") &&
 		strings.Contains(lowered, "up") {
 		select {
-		case ShutUpSignal <- struct{}{}:
+		case ShutUpSignal <- m.Message:
 		default:
 		}
 		return
@@ -562,7 +562,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		strings.Contains(lowered, "come") &&
 		strings.Contains(lowered, "back") {
 		select {
-		case ComeBackSignal <- struct{}{}:
+		case ComeBackSignal <- m.Message:
 		default:
 		}
 		return
@@ -628,15 +628,16 @@ func shutUpDetector(s *discordgo.Session) {
 	var timer = time.NewTimer(ShutUpTime)
 	timer.Stop()
 
-	var channelID = WelcomeChannelID
-	if DebugBuild {
-		channelID = DebugChannelID
-	}
-
-	var sendMsg = func(msg string) {
+	var sendMsg = func(m *discordgo.Message, msg string) {
 		if DebugBuild {
 			msg = "[DEBUG] " + msg
 		}
+
+		var channelID = m.ChannelID
+		if DebugBuild {
+			channelID = DebugChannelID
+		}
+
 		time.Sleep(ReplyTime)
 		_, err := s.ChannelMessageSend(channelID, msg)
 		if err != nil {
@@ -644,30 +645,34 @@ func shutUpDetector(s *discordgo.Session) {
 		}
 	}
 
+	var originalShutUpMessage *discordgo.Message
+
 	for {
 		select {
-		case <-ShutUpSignal:
+		case m := <-ShutUpSignal:
 			timer.Reset(ShutUpTime)
 
 			if !IsShutUp.Load() {
 				IsShutUp.Store(true)
+				originalShutUpMessage = m
 				var msg = ShutUpMessages[rand.IntN(len(ShutUpMessages))]
-				sendMsg(msg)
+				sendMsg(m, msg)
 			}
 
-		case <-ComeBackSignal:
+		case m := <-ComeBackSignal:
 			if IsShutUp.Load() {
 				timer.Stop()
 				IsShutUp.Store(false)
 				var msg = ComeBackMessages[rand.IntN(len(ComeBackMessages))]
-				sendMsg(msg)
+				sendMsg(m, msg)
 			}
-			// if not shut up, this is a no-op — nothing to come back from
 
 		case <-timer.C:
 			IsShutUp.Store(false)
-			var msg = ComeBackMessages[rand.IntN(len(ComeBackMessages))]
-			sendMsg(msg)
+			if originalShutUpMessage != nil {
+				var msg = ComeBackMessages[rand.IntN(len(ComeBackMessages))]
+				sendMsg(originalShutUpMessage, msg)
+			}
 		}
 	}
 }
