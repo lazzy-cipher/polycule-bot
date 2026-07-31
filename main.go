@@ -21,7 +21,8 @@ const (
 	WelcomeChannelID                 = "1532401026924150947" // chitchat
 	WelcomeStickerID                 = "1532410779469615288" // Lazzy Showoff
 	WelcomeRoleID                    = "1532412593816338482" // goober
-	BotChannelID                     = "1532793476746449098" // talk-to-polycule-bot
+	BotChannelID                     = "1532793476746449098" // chat-with-polly
+	DebugChannelID                   = "1532858925681086545" // poly-debug
 	ReplyTime                        = 2 * time.Second
 	ReplyToTypingTime                = 500 * time.Millisecond
 	ReactTime                        = 1 * time.Second
@@ -38,6 +39,7 @@ const (
 var (
 	Token           string
 	ShowVersion     bool
+	DebugBuild      bool
 	ResetBoredTimer = make(chan struct{})
 	ShutUpSignal    = make(chan struct{})
 	IsShutUp atomic.Bool
@@ -175,6 +177,7 @@ var (
 func init() {
 	flag.StringVar(&Token, "token", "", "Bot Token")
 	flag.BoolVar(&ShowVersion, "version", false, "Print version and exit")
+	flag.BoolVar(&DebugBuild, "debug", false, "Enable debug build")
 	flag.Parse()
 }
 
@@ -201,6 +204,10 @@ Written by Lazzy L. Cipher.
 		log.Fatal("Missing token or channel ID. Set -token flag or DISCORD_BOT_TOKEN env var.")
 	}
 
+	if DebugBuild {
+		log.Println("[DEBUG] running in debug mode, redirecting output to:", DebugChannelID)
+	}
+
 	var dg, err = discordgo.New("Bot " + Token)
 	if err != nil {
 		log.Fatal("[ERROR] cannot create Discord session:", err)
@@ -224,6 +231,7 @@ Written by Lazzy L. Cipher.
 	defer dg.Close()
 
 	go boredTimerLoop(dg)
+	go shutUpDetector(dg)
 
 	fmt.Println("Bot is running. Press CTRL-C to exit.")
 	var sc = make(chan os.Signal, 1)
@@ -283,7 +291,12 @@ func welcomeMessage(s *discordgo.Session, m *discordgo.Member) {
 	var message = fmt.Sprintf(`Welcome to the compound, <@%s>
 %s`, m.User.ID, availableMessages[messageIdx])
 
-	var _, err = s.ChannelMessageSendComplex(WelcomeChannelID, &discordgo.MessageSend{
+	var channelID = WelcomeChannelID
+	if DebugBuild {
+		channelID = DebugChannelID
+	}
+
+	var _, err = s.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
 		Content:    message,
 		StickerIDs: []string{WelcomeStickerID},
 	})
@@ -293,22 +306,29 @@ func welcomeMessage(s *discordgo.Session, m *discordgo.Member) {
 }
 
 func notifyAdmin(s *discordgo.Session, message string) {
-	dmChannel, err := s.UserChannelCreate(AdminID)
-	if err != nil {
-		log.Println("[ERROR] cannot create DM channel with admin", err)
-		return
+	var channelID = DebugChannelID
+	if !DebugBuild {
+		var channel, err = s.UserChannelCreate(AdminID)
+		if err != nil {
+			log.Println("[ERROR] cannot create DM channel with admin", err)
+			return
+		}
+
+		channelID = channel.ID
 	}
 
-	_, err = s.ChannelMessageSend(dmChannel.ID, message)
+	var _, err = s.ChannelMessageSend(channelID, message)
 	if err != nil {
 		log.Println("[ERROR] cannot send DM to admin:", err)
 	}
 }
 
 func guildMemberAdd(s *discordgo.Session, e *discordgo.GuildMemberAdd) {
-	var err = s.GuildMemberRoleAdd(e.GuildID, e.User.ID, WelcomeRoleID)
-	if err != nil {
-		log.Println("[ERROR] cannot add role:", err)
+	if !DebugBuild {
+		var err = s.GuildMemberRoleAdd(e.GuildID, e.User.ID, WelcomeRoleID)
+		if err != nil {
+			log.Println("[ERROR] cannot add role:", err)
+		}
 	}
 
 	welcomeMessage(s, e.Member)
@@ -341,8 +361,13 @@ func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 	var messageIdx = rand.IntN(len(availableMessages))
 	var message = fmt.Sprintf(availableMessages[messageIdx], e.UserID)
 
+	var channelID = e.ChannelID
+	if DebugBuild {
+		channelID = DebugChannelID
+	}
+
 	var msg = fmt.Sprintf("%s %s", message, getRandEmoticon())
-	var _, err = s.ChannelMessageSend(e.ChannelID, msg)
+	var _, err = s.ChannelMessageSend(channelID, msg)
 	if err != nil {
 		log.Println("[ERROR] cannot send welcome message:", err)
 	}
@@ -356,10 +381,17 @@ func GetRandomMessage() string {
 func reply(s *discordgo.Session, m *discordgo.Message, message string) error {
 	time.Sleep(ReplyTime)
 
-	var _, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-		Content:   message,
-		Reference: m.Reference(),
-	})
+	if !DebugBuild {
+		var _, err = s.ChannelMessageSendComplex(m.ChannelID,
+			&discordgo.MessageSend{
+				Content:   message,
+				Reference: m.Reference(),
+			})
+
+		return err
+	}
+
+	var _, err = s.ChannelMessageSend(DebugChannelID, message)
 
 	return err
 }
@@ -400,6 +432,10 @@ func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
 }
 
 func ReactPPAP(s *discordgo.Session, m *discordgo.Message) {
+	if DebugBuild {
+		return
+	}
+	
 	time.Sleep(ReactTime)
 	var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🖊️")
 	if err != nil {
@@ -435,10 +471,6 @@ func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if IsShutUp.Load() {
-		return
-	}
-
 	if s.State.User.ID == m.Author.ID {
 		HandleSelfMessages(s, m)
 		return
@@ -489,26 +521,34 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		case ShutUpSignal <- struct{}{}:
 		default:
 		}
+		return
+	}
+
+	if IsShutUp.Load() {
+		return
 	}
 
 	// Mpreg react, sometimes
-	if strings.Contains(lowered, "fpreg") {
-		time.Sleep(ReactTime)
-		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🤰")
-		if err != nil {
-			log.Printf("[ERROR] %s\n", err)
-		}
-	} else if rand.Float64() <= ReactToMessageChance ||
-		strings.Contains(lowered, "preg") {
-		time.Sleep(ReactTime)
-		var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
-		if err != nil {
-			log.Printf("[ERROR] %s\n", err)
+	if !DebugBuild {
+		if strings.Contains(lowered, "fpreg") {
+			time.Sleep(ReactTime)
+			var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🤰")
+			if err != nil {
+				log.Printf("[ERROR] %s\n", err)
+			}
+		} else if rand.Float64() <= ReactToMessageChance ||
+			strings.Contains(lowered, "preg") {
+			time.Sleep(ReactTime)
+			var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🫃")
+			if err != nil {
+				log.Printf("[ERROR] %s\n", err)
+			}
 		}
 	}
 
 	// Always reply to replies
-	if m.ReferencedMessage != nil && m.ReferencedMessage.Author.ID == s.State.User.ID {
+	if m.ReferencedMessage != nil &&
+		m.ReferencedMessage.Author.ID == s.State.User.ID {
 		if rand.Float64() <= ReplyToReplyChance {
 			var err = replyRandom(s, m.Message)
 			if err != nil {
@@ -561,6 +601,11 @@ func shutUpDetector(s *discordgo.Session) {
 		"*hugs closest person* i was too quiet too long i got anxious... ;w;",
 	}
 
+	var channelID = WelcomeChannelID
+	if DebugBuild {
+		channelID = DebugChannelID
+	}
+
 	for {
 		select {
 		case <-ShutUpSignal:
@@ -569,7 +614,7 @@ func shutUpDetector(s *discordgo.Session) {
 			if !IsShutUp.Load() {
 				IsShutUp.Store(true)
 				var msg = shutUpMessages[rand.IntN(len(shutUpMessages))]
-				_, err := s.ChannelMessageSend(WelcomeChannelID, msg)
+				_, err := s.ChannelMessageSend(channelID, msg)
 				if err != nil {
 					log.Println("[ERROR] cannot send shut-up message:", err)
 				}
@@ -578,7 +623,7 @@ func shutUpDetector(s *discordgo.Session) {
 		case <-timer.C:
 			IsShutUp.Store(false)
 			var msg = comeBackMessages[rand.IntN(len(comeBackMessages))]
-			_, err := s.ChannelMessageSend(WelcomeChannelID, msg)
+			_, err := s.ChannelMessageSend(channelID, msg)
 			if err != nil {
 				log.Println("[ERROR] cannot send come-back message:", err)
 			}
@@ -606,7 +651,7 @@ func boredTimerLoop(s *discordgo.Session) {
 	for {
 		select {
 		case <-timer.C:
-			if alreadySaidBored || IsShutUp.Load() {
+			if alreadySaidBored || IsShutUp.Load() || DebugBuild {
 				timer.Reset(TimeBeforeBored)
 				continue
 			}
