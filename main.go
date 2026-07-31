@@ -295,6 +295,7 @@ func welcomeMessage(s *discordgo.Session, m *discordgo.Member) {
 	var channelID = WelcomeChannelID
 	if DebugBuild {
 		channelID = DebugChannelID
+		message = "[DEBUG] " + message
 	}
 
 	var _, err = s.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
@@ -316,6 +317,8 @@ func notifyAdmin(s *discordgo.Session, message string) {
 		}
 
 		channelID = channel.ID
+	} else {
+		message = "[DEBUG] " + message
 	}
 
 	var _, err = s.ChannelMessageSend(channelID, message)
@@ -361,14 +364,15 @@ func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 
 	var messageIdx = rand.IntN(len(availableMessages))
 	var message = fmt.Sprintf(availableMessages[messageIdx], e.UserID)
+	var finalMessage = fmt.Sprintf("%s %s", message, getRandEmoticon())
 
 	var channelID = e.ChannelID
 	if DebugBuild {
 		channelID = DebugChannelID
+		finalMessage = "[DEBUG] " + finalMessage
 	}
 
-	var msg = fmt.Sprintf("%s %s", message, getRandEmoticon())
-	var _, err = s.ChannelMessageSend(channelID, msg)
+	var _, err = s.ChannelMessageSend(channelID, finalMessage)
 	if err != nil {
 		log.Println("[ERROR] cannot send welcome message:", err)
 	}
@@ -392,7 +396,7 @@ func reply(s *discordgo.Session, m *discordgo.Message, message string) error {
 		return err
 	}
 
-	var _, err = s.ChannelMessageSend(DebugChannelID, message)
+	var _, err = s.ChannelMessageSend(DebugChannelID, "[DEBUG] " + message)
 
 	return err
 }
@@ -615,6 +619,9 @@ func shutUpDetector(s *discordgo.Session) {
 			if !IsShutUp.Load() {
 				IsShutUp.Store(true)
 				var msg = shutUpMessages[rand.IntN(len(shutUpMessages))]
+				if DebugBuild {
+					msg = "[DEBUG] " + msg
+				}
 				_, err := s.ChannelMessageSend(channelID, msg)
 				if err != nil {
 					log.Println("[ERROR] cannot send shut-up message:", err)
@@ -624,6 +631,9 @@ func shutUpDetector(s *discordgo.Session) {
 		case <-timer.C:
 			IsShutUp.Store(false)
 			var msg = comeBackMessages[rand.IntN(len(comeBackMessages))]
+			if DebugBuild {
+				msg = "[DEBUG] " + msg
+			}
 			_, err := s.ChannelMessageSend(channelID, msg)
 			if err != nil {
 				log.Println("[ERROR] cannot send come-back message:", err)
@@ -660,6 +670,9 @@ func boredTimerLoop(s *discordgo.Session) {
 			var message = boredMessages[rand.IntN(len(boredMessages))]
 			var emoticon = Emoticons[rand.IntN(len(Emoticons))]
 			var finalMessage = fmt.Sprintf("%s %s", message, emoticon)
+			if DebugBuild {
+				finalMessage = "[DEBUG] " + finalMessage
+			}
 
 			_, err := s.ChannelMessageSend(WelcomeChannelID, finalMessage)
 			if err != nil {
