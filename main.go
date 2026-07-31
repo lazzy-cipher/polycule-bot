@@ -20,12 +20,14 @@ const (
 	WelcomeChannelID     = "1532401026924150947" // chitchat
 	WelcomeStickerID     = "1532410779469615288" // Lazzy Showoff
 	WelcomeRoleID        = "1532412593816338482" // goober
+	BotChannelID         = "1532793476746449098" // talk-to-polycule-bot
 	ReplyTime            = 2 * time.Second
 	ReplyToTypingTime    = 500 * time.Millisecond
 	ReactTime            = 1 * time.Second
 	ReplyToTypingChance  = 0.005 // 0.5%
 	ReplyToReplyChance   = 1.0   // 1.0%
 	ReplyToMessageChance = 0.02  // 2%
+	ReplyToMessageInBotChannelChance = 0.1  // 10%
 	ReactToMessageChance = 0.04  // 4%
 	Version              = "1.0.2"
 	TimeBeforeBored      = 2 * time.Hour
@@ -95,7 +97,7 @@ var (
 		"ah okay anyway HANGOUT WHEN???",
 		"trans lives matter most of the time!",
 		"im so full.......",
-		"aaa you talk to much just come to my place!!! in my room...",
+		"aaa you talk too much just come to my place!!! in my room...",
 		"i have so much to learn from you...",
 		"how interesting..",
 		"are you sure?",
@@ -401,6 +403,11 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	var chance = ReplyToMessageChance
+	if m.ChannelID == BotChannelID {
+		chance = ReplyToMessageInBotChannelChance
+	}
+
 	if strings.Contains(lowered, "ppap") ||
 		strings.Contains(lowered, "apple") {
 		go ReactPPAP(s, m.Message)
@@ -408,7 +415,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		reply(s, m.Message, ppap)
 	} else if mentionsBot(s, m.Message) ||
 		strings.Contains(lowered, "polycule bot") ||
-		rand.Float64() <= ReplyToMessageChance {
+		rand.Float64() <= chance {
 		reply(s, m.Message, getRandomMessage())
 	}
 }
