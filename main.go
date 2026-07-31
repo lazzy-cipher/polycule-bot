@@ -37,6 +37,7 @@ var (
 	ResetBoredTimer = make(chan struct{})
 	Emoticons       = [...]string{
 		":3",
+		";3",
 		">w<",
 		"x3",
 		";w;",
@@ -46,13 +47,17 @@ var (
 		"owo",
 		"uwu",
 		">>",
+		"><",
+		">///<",
 		">//>",
+		"o3o",
+		"-^-",
 	}
 	Replies = [...]string{
 		"uhuh",
-		"oo",
 		"oki!",
 		"?",
+		"",
 		"",
 		"*rolls over*",
 		"zip! ziip zip!",
@@ -70,6 +75,8 @@ var (
 		"ooh",
 		"okok",
 		"hm",
+		"ye",
+		"yeah",
 		"idk seems kinda sus",
 		"that's so based omg",
 		"yeah no that's totally it actually",
@@ -120,6 +127,11 @@ var (
 		"OKAY I GUESS!!!!!",
 		"*jitters from too much caffeine*",
 		"lemme get in your pants im cold",
+		"youre silly",
+		"something i really really love about you is that you, huh... you know your place?",
+		"maybe the two of us could be... more? like... friends...? maybe...?",
+		"OKAY I ADMIT I HAVE A SECRET TO TELL YOU",
+		"please send more messages like that~",
 	}
 	ReplyChannelBlacklist = [...]string{
 		"1532407644919431218", // memories
@@ -308,6 +320,32 @@ func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
 	return false
 }
 
+func ReactPPAP(s *discordgo.Session, m *discordgo.Message) {
+	time.Sleep(ReactTime)
+	var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🖊️")
+	if err != nil {
+		log.Printf("[ERROR] %s\n", err)
+	}
+
+	time.Sleep(ReactTime)
+	err = s.MessageReactionAdd(m.ChannelID, m.ID, "🍍")
+	if err != nil {
+		log.Printf("[ERROR] %s\n", err)
+	}
+
+	time.Sleep(ReactTime)
+	err = s.MessageReactionAdd(m.ChannelID, m.ID, "🍎")
+	if err != nil {
+		log.Printf("[ERROR] %s\n", err)
+	}
+
+	time.Sleep(ReactTime)
+	err = s.MessageReactionAdd(m.ChannelID, m.ID, "🖋️")
+	if err != nil {
+		log.Printf("[ERROR] %s\n", err)
+	}
+}
+
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// ignore bots, including yourself
 	if m.Author.Bot {
@@ -363,7 +401,12 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if mentionsBot(s, m.Message) ||
+	if strings.Contains(lowered, "ppap") ||
+		strings.Contains(lowered, "apple") {
+		go ReactPPAP(s, m.Message)
+		var ppap = "pen pineapple apple pen " + getRandEmoticon()
+		reply(s, m.Message, ppap)
+	} else if mentionsBot(s, m.Message) ||
 		strings.Contains(lowered, "polycule bot") ||
 		rand.Float64() <= ReplyToMessageChance {
 		reply(s, m.Message, getRandomMessage())
