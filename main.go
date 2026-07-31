@@ -157,7 +157,7 @@ var (
 		"<@" + AdminID + "> programmed me too many feelings",
 		"im too poly for that kind of stuff",
 		"if i could smell like something id like to smell like bubble cum",
-		"*cute autistic stimming",
+		"*cute autistic stimming*",
 		"*gets constipated from joy* AAA why does it always do that!!",
 	}
 	ReplyChannelBlacklist = [...]string{
