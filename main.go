@@ -88,7 +88,7 @@ var (
 		"SO TRUE!!",
 		"ye tru",
 		"tru",
-		"words",
+		"word",
 		"mhm!",
 		"sounds about right? I think?",
 		"*flops*",
@@ -369,7 +369,8 @@ func guildMemberAdd(s *discordgo.Session, e *discordgo.GuildMemberAdd) {
 }
 
 func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
-	if IsShutUp.Load() {
+	if IsShutUp.Load() ||
+		slices.Contains(ReplyChannelBlacklist, e.ChannelID){
 		return
 	}
 
