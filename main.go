@@ -26,8 +26,8 @@ const (
 	ReplyToTypingChance  = 0.005 // 0.5%
 	ReplyToReplyChance   = 1.0   // 1.0%
 	ReplyToMessageChance = 0.02  // 2%
-	ReactToMessageChance = 0.05  // 5%
-	Version              = "1.0.1"
+	ReactToMessageChance = 0.04  // 4%
+	Version              = "1.0.2"
 	TimeBeforeBored      = 2 * time.Hour
 )
 
