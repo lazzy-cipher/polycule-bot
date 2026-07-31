@@ -59,6 +59,13 @@ var (
 		"wow",
 		"mm mm mm",
 		"true",
+		"true",
+		"SO TRUE!!",
+		"ye tru",
+		"tru",
+		"words,"
+		"mhm!",
+		"sounds about right? I think?",
 		"*flops*",
 		"ooh",
 		"okok",
@@ -89,7 +96,7 @@ var (
 		"I consent!!!!!!!",
 		"uh idk???? sorry im all over the place i have my periods rn...",
 		"ugh my botvaries they hurt i will go rest for a while sorryyy",
-		// "mi lawa sina la mi unpa wawa e sina", not sure
+		 "mi lawa sina la mi unpa wawa e sina",
 		"aww.. dih.. oh- wait, what? oh! oh ye ye",
 		"idk man im just hungry",
 		"no way",
@@ -97,6 +104,22 @@ var (
 		"shhh~ <3",
 		"i dont regret what we did last night~",
 		"whatever!!!!! you said we were going to costco to get candy and hot dogs!!! are we going soon??",
+		"not what im into but i dig it",
+		"im so so so sorry..",
+		"its not like that!!! im- uh- ...",
+		"*sniffs you*. mmmmh gay.",
+		"gosh...",
+		"twin... like... ugh nvm...",
+		"its how it do be when it do be like that in that kind of way ig",
+		"yeah ig..",
+		"oh wait a minute, im bending over rn...",
+		"thats not fair!!!",
+		"are you okay... with me.. being the way I am..?",
+		"big guh moment",
+		"imma sit this one out.. on your lap",
+		"OKAY I GUESS!!!!!",
+		"*jitters from too much caffeine*",
+		"lemme get in your pants im cold",
 	}
 	ReplyChannelBlacklist = [...]string{
 		"1532407644919431218", // memories
@@ -142,6 +165,7 @@ Written by Lazzy L. Cipher.
 		discordgo.IntentGuildMembers |
 		discordgo.IntentGuildMessageTyping |
 		discordgo.IntentGuildMessages |
+		discordgo.IntentDirectMessages |
 		discordgo.IntentMessageContent
 
 	dg.AddHandler(guildMemberStartsTyping)
@@ -261,11 +285,13 @@ func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 	}
 }
 
-func reply(s *discordgo.Session, m *discordgo.Message) {
-	time.Sleep(ReplyTime)
-
+func getRandomMessage() string {
 	var messageIdx = rand.IntN(len(Replies))
-	var message = fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
+	return fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
+}
+
+func reply(s *discordgo.Session, m *discordgo.Message, message string) {
+	time.Sleep(ReplyTime)
 
 	s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 		Content:   message,
@@ -285,6 +311,12 @@ func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// ignore bots, including yourself
 	if m.Author.Bot {
+		return
+	}
+
+	// Direct message
+	if m.GuildID == "" {
+		reply(s, m.Message, ";3")
 		return
 	}
 
@@ -326,7 +358,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Always reply to replies
 	if m.ReferencedMessage != nil && m.ReferencedMessage.Author.ID == s.State.User.ID {
 		if rand.Float64() <= ReplyToReplyChance {
-			reply(s, m.Message)
+			reply(s, m.Message, getRandomMessage())
 		}
 		return
 	}
@@ -334,7 +366,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if mentionsBot(s, m.Message) ||
 		strings.Contains(lowered, "polycule bot") ||
 		rand.Float64() <= ReplyToMessageChance {
-		reply(s, m.Message)
+		reply(s, m.Message, getRandomMessage())
 	}
 }
 
