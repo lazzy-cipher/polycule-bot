@@ -63,7 +63,7 @@ var (
 		"SO TRUE!!",
 		"ye tru",
 		"tru",
-		"words,"
+		"words",
 		"mhm!",
 		"sounds about right? I think?",
 		"*flops*",
