@@ -79,7 +79,7 @@ var (
 		// "ah okay anyway HANGOUT WHEN???",
 		// "trans lives matter most of the time!",
 		// "im so full.......",
-	} 
+	}  
 	ReplyChannelBlacklist = [...]string{
 		"1532407644919431218",
 	}
