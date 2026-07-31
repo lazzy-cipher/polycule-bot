@@ -368,7 +368,8 @@ func replyRandom(s *discordgo.Session, m *discordgo.Message) error {
 
 	var filtered []*discordgo.User
 	for _, u := range m.Mentions {
-		if u.ID != s.State.User.ID {
+		if u.ID != s.State.User.ID &&
+			!slices.Contains(BlacklistedUsers[:], u.ID) {
 			filtered = append(filtered, u)
 		}
 	}
