@@ -16,21 +16,21 @@ import (
 )
 
 const (
-	AdminID              = "254331907351904256"  // lazarus_overlook
-	WelcomeChannelID     = "1532401026924150947" // chitchat
-	WelcomeStickerID     = "1532410779469615288" // Lazzy Showoff
-	WelcomeRoleID        = "1532412593816338482" // goober
-	BotChannelID         = "1532793476746449098" // talk-to-polycule-bot
-	ReplyTime            = 2 * time.Second
-	ReplyToTypingTime    = 500 * time.Millisecond
-	ReactTime            = 1 * time.Second
-	ReplyToTypingChance  = 0.005 // 0.5%
-	ReplyToReplyChance   = 1.0   // 1.0%
-	ReplyToMessageChance = 0.02  // 2%
-	ReplyToMessageInBotChannelChance = 0.1  // 10%
-	ReactToMessageChance = 0.04  // 4%
-	Version              = "1.0.2"
-	TimeBeforeBored      = 2 * time.Hour
+	AdminID                          = "254331907351904256"  // lazarus_overlook
+	WelcomeChannelID                 = "1532401026924150947" // chitchat
+	WelcomeStickerID                 = "1532410779469615288" // Lazzy Showoff
+	WelcomeRoleID                    = "1532412593816338482" // goober
+	BotChannelID                     = "1532793476746449098" // talk-to-polycule-bot
+	ReplyTime                        = 2 * time.Second
+	ReplyToTypingTime                = 500 * time.Millisecond
+	ReactTime                        = 1 * time.Second
+	ReplyToTypingChance              = 0.005 // 0.5%
+	ReplyToReplyChance               = 1.0   // 1.0%
+	ReplyToMessageChance             = 0.02  // 2%
+	ReplyToMessageInBotChannelChance = 0.1   // 10%
+	ReactToMessageChance             = 0.04  // 4%
+	Version                          = "1.0.2"
+	TimeBeforeBored                  = 2 * time.Hour
 )
 
 var (
@@ -54,6 +54,17 @@ var (
 		">//>",
 		"o3o",
 		"-^-",
+		">:3c",
+	}
+	Comments = [...]string{
+		"<@%s> unnerves me a bit i find it kind of hot",
+		"hey <@%s> guess what CHIKIN NUGETS",
+		"*unmolests <@%s>* no need to thank me",
+		"i carried <@%s>s children 3/5 pretty good",
+		"when i look at <@%s> i feel a lot of feelings, like, constipation, euphoria",
+		"me and <@%s> are twins i love them so much they mean a lot to me",
+		"<@%s> is my eternal frienemy turned forbidden romance turned fried chicken cook i sometimes go see after work (im unemployed)",
+		"hey <@%s> i have a job for you, *rolls over*",
 	}
 	Replies = [...]string{
 		"uhuh",
@@ -164,6 +175,8 @@ func init() {
 }
 
 func main() {
+	assertInitState()
+
 	if ShowVersion {
 		fmt.Printf(`Polycule Bot v%s
 Copyright (C) 2026 lazzy.cipher@proton.me.
@@ -212,6 +225,20 @@ Written by Lazzy L. Cipher.
 	var sc = make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
+}
+
+func assertInitState() {
+	var crash = false
+	for _, c := range Comments {
+		if strings.Count(c, "<@%s>") != 1 {
+			log.Printf("[ERROR] comment \"%s\" doesn't contain exactly one \"<@%%s>\"", c)
+			crash = true
+		}
+	}
+
+	if crash {
+		log.Fatal("[ERROR] invalid initial program state")
+	}
 }
 
 func getRandEmoticon() string {
@@ -313,7 +340,7 @@ func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 	}
 }
 
-func getRandomMessage() string {
+func GetRandomMessage() string {
 	var messageIdx = rand.IntN(len(Replies))
 	return fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
 }
@@ -327,6 +354,31 @@ func reply(s *discordgo.Session, m *discordgo.Message, message string) error {
 	})
 
 	return err
+}
+
+func GetRandomComment(userID string) string {
+	var template = Comments[rand.IntN(len(Comments))]
+	return fmt.Sprintf(template, userID)
+}
+
+func replyRandom(s *discordgo.Session, m *discordgo.Message) error {
+	if len(m.Mentions) <= 0 {
+		return reply(s, m, GetRandomMessage())
+	}
+
+	var filtered []*discordgo.User
+	for _, u := range m.Mentions {
+		if u.ID != s.State.User.ID {
+			filtered = append(filtered, u)
+		}
+	}
+
+	if len(filtered) <= 0 {
+		return reply(s, m, GetRandomMessage())
+	}
+
+	var userID = filtered[rand.IntN(len(filtered))].ID
+	return reply(s, m, GetRandomComment(userID))
 }
 
 func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
@@ -428,10 +480,12 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
+	// todo: add comments when other users are mentioned
+
 	// Always reply to replies
 	if m.ReferencedMessage != nil && m.ReferencedMessage.Author.ID == s.State.User.ID {
 		if rand.Float64() <= ReplyToReplyChance {
-			var err = reply(s, m.Message, getRandomMessage())
+			var err = replyRandom(s, m.Message)
 			if err != nil {
 				log.Printf("[ERROR] %s\n", err)
 			}
@@ -458,7 +512,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		strings.Contains(lowered, "the bot") ||
 		strings.Contains(lowered, "polly") ||
 		rand.Float64() <= chance {
-		var err = reply(s, m.Message, getRandomMessage())
+		var err = replyRandom(s, m.Message)
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
