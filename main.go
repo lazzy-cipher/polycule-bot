@@ -20,6 +20,7 @@ const (
 	WelcomeStickerID     = "1532410779469615288" // Lazzy Showoff
 	WelcomeRoleID        = "1532412593816338482" // goober
 	ReplyTime            = 2 * time.Second
+	ReplyToTypingTime    = 500 * time.Millisecond
 	ReactTime            = 1 * time.Second
 	ReplyToTypingChance  = 0.005 // 0.5%
 	ReplyToReplyChance   = 1.0   // 1.0%
@@ -64,7 +65,7 @@ var (
 		"idk seems kinda sus",
 		"that's so based omg",
 		"yeah no that's totally it actually",
-		"why are you like this",
+		"i like that you're weird like that",
 		"Unnnfhg...",
 		"!!!",
 		"a- are you sure...?",
@@ -79,6 +80,21 @@ var (
 		"ah okay anyway HANGOUT WHEN???",
 		"trans lives matter most of the time!",
 		"im so full.......",
+		"aaa you talk to much just come to my place!!! in my room...",
+		"i have so much to learn from you...",
+		"how interesting..",
+		"are you sure?",
+		"new kink unlocked",
+		"I consent!!!!!!!",
+		"uh idk???? sorry im all over the place i have my periods rn...",
+		"ugh my botvaries they hurt i will go rest for a while sorryyy",
+		// "mi lawa sina la mi unpa wawa e sina", not sure
+		"aww.. dih.. oh- wait, what? oh! oh ye ye",
+		"idk man im just hungry",
+		"no way",
+		"youd look so cute pregnant, you know that?",
+		"shhh~ <3",
+		"i dont regret what we did last night~",
 	}
 	ReplyChannelBlacklist = [...]string{
 		"1532407644919431218",
@@ -204,7 +220,7 @@ func notifyAdmin(s *discordgo.Session, message string) {
 func guildMemberAdd(s *discordgo.Session, e *discordgo.GuildMemberAdd) {
 	var err = s.GuildMemberRoleAdd(e.GuildID, e.User.ID, WelcomeRoleID)
 	if err != nil {
-		log.Println("[ERROR cannot add role:", err)
+		log.Println("[ERROR] cannot add role:", err)
 	}
 
 	welcomeMessage(s, e.Member)
@@ -216,7 +232,7 @@ func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 		return
 	}
 
-	time.Sleep(ReplyTime)
+	time.Sleep(ReplyToTypingTime)
 
 	var availableMessages = [...]string{
 		"whatcha typin? <@%s>",
