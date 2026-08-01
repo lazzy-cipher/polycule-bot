@@ -215,6 +215,8 @@ var (
 		"i mean...",
 		"once i was on a trip and i saw a full can of monster energy drink on the ground and it wasnt open and i opened it and it tasted so good... its really such a little story but it brings me so much happiness",
 		"i like the vibe here",
+		"hey a bit out of topic but like i played subnautica last night and omg... fih... 🐟\nhttps://tenor.com/view/fissh-vaporeon-ok-dont-warning-gif-7371806276035619298",
+		"yknow i like to read the classics like \"no david\" but like it broke my heart because i kind of saw me in that book but i just wished david was good so sometimes i wish i was good but its really hard...",
 	}
 	BoredMessages = [...]string{
 		"I'M SO BORED OMG",
@@ -575,6 +577,10 @@ func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if DebugBuild {
+		reply(s, m.Message, "hey a bit out of topic but like i played subnautica last night and omg... fih... 🐟\nhttps://tenor.com/view/fissh-vaporeon-ok-dont-warning-gif-7371806276035619298")
+		return
+	}
 	if s.State.User.ID == m.Author.ID {
 		HandleSelfMessages(s, m)
 		return
