@@ -31,7 +31,7 @@ const (
 	ReplyToMessageChance             = 0.02  // 2%
 	ReplyToMessageInBotChannelChance = 0.1   // 10%
 	ReactToMessageChance             = 0.04  // 4%
-	Version                          = "1.0.2"
+	Version                          = "1.0.3"
 	TimeBeforeBored                  = 2 * time.Hour
 	ShutUpTime                       = 2 * time.Hour
 )
