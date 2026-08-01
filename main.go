@@ -43,7 +43,7 @@ var (
 	ResetBoredTimer = make(chan struct{})
 	ShutUpSignal    = make(chan *discordgo.Message)
 	ComeBackSignal  = make(chan *discordgo.Message)
-	IsShutUp atomic.Bool
+	IsShutUp        atomic.Bool
 	Emoticons       = [...]string{
 		":3",
 		";3",
@@ -137,7 +137,6 @@ var (
 		"I consent!!!!!!!",
 		"uh idk???? sorry im all over the place i have my periods rn...",
 		"ugh my botvaries they hurt i will go rest for a while sorryyy",
-		"mi lawa sina la mi unpa wawa e sina",
 		"aww.. dih.. oh- wait, what? oh! oh ye ye",
 		"idk man im just hungry",
 		"no way",
@@ -152,7 +151,6 @@ var (
 		"twin... like... ugh nvm...",
 		"its how it do be when it do be like that in that kind of way ig",
 		"yeah ig..",
-		"oh wait a minute, im bending over rn...",
 		"thats not fair!!!",
 		"are you okay... with me.. being the way I am..?",
 		"big guh moment",
@@ -393,7 +391,7 @@ func guildMemberAdd(s *discordgo.Session, e *discordgo.GuildMemberAdd) {
 
 func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 	if IsShutUp.Load() ||
-		slices.Contains(ReplyChannelBlacklist, e.ChannelID){
+		slices.Contains(ReplyChannelBlacklist, e.ChannelID) {
 		return
 	}
 
@@ -449,7 +447,7 @@ func reply(s *discordgo.Session, m *discordgo.Message, message string) error {
 		return err
 	}
 
-	var _, err = s.ChannelMessageSend(DebugChannelID, "[DEBUG] " + message)
+	var _, err = s.ChannelMessageSend(DebugChannelID, "[DEBUG] "+message)
 
 	return err
 }
@@ -502,7 +500,7 @@ func ReactPPAP(s *discordgo.Session, m *discordgo.Message) {
 	if DebugBuild {
 		return
 	}
-	
+
 	time.Sleep(ReactTime)
 	var err = s.MessageReactionAdd(m.ChannelID, m.ID, "🖊️")
 	if err != nil {
@@ -540,7 +538,7 @@ func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var err = reply(s, m.Message, "oh wait im dumb im texting with it lol")
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
-		}		
+		}
 	}
 }
 
@@ -648,7 +646,12 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.Contains(lowered, "ppap") ||
-		strings.Contains(lowered, "apple") {
+		strings.Contains(lowered, "apple") ||
+		strings.Contains(lowered, "🍍") ||
+		strings.Contains(lowered, "🍎") ||
+		strings.Contains(lowered, "🍏") ||
+		strings.Contains(lowered, "🍍") ||
+		strings.Contains(lowered, "🖋") {
 		go ReactPPAP(s, m.Message)
 		var ppap = "pen pineapple apple pen " + getRandEmoticon()
 		var err = reply(s, m.Message, ppap)
