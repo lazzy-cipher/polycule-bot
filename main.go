@@ -85,7 +85,7 @@ var (
 		"idk im kind of scared to talk to <@%s> they are kind of way too cute...",
 		"<@%s> gives me gender euphoria",
 		"ughn... <@%s>... umf...",
-		"i dont wanna tell <@%s> about my appointment with doctor monster", // TODO: make her reply to a reply to that with "well im not telling you"
+		"i dont wanna tell <@%s> about my doctor monster appointment with doctor monster", // TODO: make her reply to a reply to that with "well im not telling you"
 		"hi <@%s>",
 		"i like having <@%s> around",
 		"id honestly be pretty sad without <@%s> here",
@@ -663,10 +663,15 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Always reply to replies
 	if m.ReferencedMessage != nil &&
 		m.ReferencedMessage.Author.ID == s.State.User.ID {
-		if rand.Float64() <= ReplyToReplyChance {
+		if strings.Contains(m.ReferencedMessage.Content, "doctor monster") {
+			var err = reply(s, m.Message, "well im never telling youu")
+			if err != nil {
+				log.Println("[ERROR]", err)
+			}
+		} else if rand.Float64() <= ReplyToReplyChance {
 			var err = replyRandom(s, m.Message)
 			if err != nil {
-				log.Printf("[ERROR] %s\n", err)
+				log.Println("[ERROR]", err)
 			}
 		}
 		return
