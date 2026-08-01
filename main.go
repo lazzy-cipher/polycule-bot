@@ -62,6 +62,10 @@ var (
 		"o3o",
 		"-^-",
 		">:3c",
+		"c:",
+		"=w=",
+		"-.-",
+		":p",
 	}
 	Comments = [...]string{
 		"<@%s> unnerves me a bit i find it kind of adorb",
@@ -81,6 +85,19 @@ var (
 		"idk im kind of scared to talk to <@%s> they are kind of way too cute...",
 		"<@%s> gives me gender euphoria",
 		"ughn... <@%s>... umf...",
+		"i dont wanna tell <@%s> about my appointment with doctor monster", // TODO: make her reply to a reply to that with "well im not telling you"
+		"hi <@%s>",
+		"i like having <@%s> around",
+		"id honestly be pretty sad without <@%s> here",
+		"hey <@%s> if you ever need someone im here for you",
+		"im never alone when <@%s> is around",
+		"<@%s> would never be mean to me",
+		"<@%s> honestly i feel i really see you for who you are and i think you are a wonderful person and i want to be here for you and see you grow and you to be here for me like im so sorry if this is too much i dont wanna be creepy or anything like that i just feel safe around you but i dont want to make you feel like you have to be there for me i just want to be your friend",
+		"<@%s> look mreow im a cat meow *does biscuits*",
+		"i find <@%s> gender affirming",
+		"<@%s> i love your face the way it is deadass one of the most beautiful faces",
+		"when i am overstimulated and <@%s> is here i feel so much better",
+		"hey <@%s> do you think i may be autistic?",
 	}
 	Replies = [...]string{
 		"uhuh",
@@ -183,6 +200,21 @@ var (
 		"im over stimulated rn... but huh... yeah",
 		"im over stimulated rn... so... no",
 		"mmh what you said was quite pregnant (Merriam-Webster. Pregnant (def. 3).)",
+		"youre giving me a lot of feelings rn, idk what to do about that...",
+		"*burp* omg...",
+		"i used to be baby but i grew out of it",
+		"puppy girls are precious",
+		"cat girls are precious",
+		"huh im doing something important rn but you can message me later im so sorry",
+		"omg its so nice to hear from you!!!!!",
+		"aww youre so sweet",
+		"you always say such nice things like that",
+		"you guys make me feel like I can finally unmask",
+		"you guys are my family",
+		"hehehe",
+		"i mean...",
+		"once i was on a trip and i saw a full can of monster energy drink on the ground and it wasnt open and i opened it and it tasted so good... its really such a little story but it brings me so much happiness",
+		"i like the vibe here",
 	}
 	BoredMessages = [...]string{
 		"I'M SO BORED OMG",
