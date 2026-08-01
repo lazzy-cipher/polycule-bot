@@ -72,6 +72,16 @@ var (
 		"me and <@%s> are twins i love them so much they mean a lot to me",
 		"<@%s> is my eternal frienemy turned forbidden romance turned fried chicken cook i sometimes go see after work (im unemployed)",
 		"hey <@%s> i have a job for you, *rolls over*",
+		"<@%s> and me could be a thing, maybe...",
+		"i will protect <@%s> with my life",
+		"*pokes <@%s> and runs away*",
+		"*offers a fresh home grown tomato to <@%s>*",
+		"<@%s> always puzzled me",
+		"yeah id drink <@%s>'s milk",
+		"so huh <@%s> when are you free??",
+		"idk im kind of scared to talk to <@%s> they are kind of way too cute...",
+		"<@%s> gives me gender euphoria",
+		"ughn... <@%s>... umf...",
 	}
 	Replies = [...]string{
 		"uhuh",
@@ -97,6 +107,9 @@ var (
 		"hm",
 		"ye",
 		"yeah",
+		"yuhuh",
+		"nuhuh",
+		"noperinos",
 		"idk seems kinda sus",
 		"that's so based omg",
 		"yeah no that's totally it actually",
@@ -166,6 +179,14 @@ var (
 		"if i could smell like something id like to smell like bubble cum",
 		"*cute autistic stimming*",
 		"*gets constipated from joy* AAA why does it always do that!!",
+		"its huh... not how it works",
+		"well maybe sometimes idk",
+		"dont ask me im just a girl",
+		"dont ask me im just a boy",
+		"sorry wait a moment i lost my phone",
+		"im over stimulated rn... but huh... yeah",
+		"im over stimulated rn... so... no",
+		"thats what i call a pregnancy kink",
 	}
 	BoredMessages = [...]string{
 		"I'M SO BORED OMG",
@@ -441,11 +462,23 @@ func replyRandom(s *discordgo.Session, m *discordgo.Message) error {
 		return reply(s, m, GetRandomMessage())
 	}
 
+	var refAuthorID string
+	if m.ReferencedMessage != nil {
+		refAuthorID = m.ReferencedMessage.Author.ID
+	}
+
 	var filtered []*discordgo.User
 	for _, u := range m.Mentions {
-		if u.ID != s.State.User.ID &&
-			!slices.Contains(BlacklistedUsers[:], u.ID) {
+		if u.ID != s.State.User.ID ||
+			slices.Contains(BlacklistedUsers[:], u.ID) {
 			filtered = append(filtered, u)
+		}
+
+		// Skip the replied-to user except if they were also @mentioned
+		// in the message text itself
+		if u.ID == refAuthorID &&
+			!strings.Contains(m.Content, "<@"+u.ID+">") {
+			continue
 		}
 	}
 
@@ -498,10 +531,17 @@ func ReactPPAP(s *discordgo.Session, m *discordgo.Message) {
 
 func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.Contains(m.Content, "if i could smell like something id like to smell like bubble cum") {
+		time.Sleep(ReplyTime)
 		var err = reply(s, m.Message, "GUM!! I MEANT GUM!!!!")
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
+	} else if strings.Contains(m.Content, "sorry wait a moment i lost my phone") {
+		time.Sleep(ReplyTime)
+		var err = reply(s, m.Message, "oh wait im dumb im texting with it lol")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}		
 	}
 }
 
