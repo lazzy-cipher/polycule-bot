@@ -27,7 +27,8 @@ const (
 	ReplyToTypingTime                = 500 * time.Millisecond
 	ReactTime                        = 1 * time.Second
 	ReplyToTypingChance              = 0.005 // 0.5%
-	ReplyToReplyChance               = 1.0   // 1.0%
+	ReplyToReplyChance               = 1.0   // 1%
+	ReplyWithGifChance               = 0.05  // 5%, otherwise text
 	ReplyToMessageChance             = 0.02  // 2%
 	ReplyToMessageInBotChannelChance = 0.1   // 10%
 	ReactToMessageChance             = 0.04  // 4%
@@ -215,8 +216,18 @@ var (
 		"i mean...",
 		"once i was on a trip and i saw a full can of monster energy drink on the ground and it wasnt open and i opened it and it tasted so good... its really such a little story but it brings me so much happiness",
 		"i like the vibe here",
-		"hey a bit out of topic but like i played subnautica last night and omg... fih... 🐟\nhttps://tenor.com/view/fissh-vaporeon-ok-dont-warning-gif-7371806276035619298",
+		"hey a bit out of topic but like i played subnautica last night and omg... fih... 🐟\nhttps://klipy.com/gifs/vaporeon-ISU",
 		"yknow i like to read the classics like \"no david\" but like it broke my heart because i kind of saw me in that book but i just wished david was good so sometimes i wish i was good but its really hard...",
+	}
+	Gifs = [...]string{
+		"https://klipy.com/gifs/emoji-head-pat",                                   // head pats
+		"https://klipy.com/gifs/cat-1776",                                         // :3
+		"https://klipy.com/gifs/cat-cat-brick--kgbsGV961",                         // throw brick back
+		"https://klipy.com/gifs/cat-brick-fast-brick-throw--kgbsGV961",            // cat brick fast
+		"https://klipy.com/gifs/me-when-i-fucking-get-you-neko-atsume--kbtf400Fb", // me when i fucking get you
+		"https://klipy.com/gifs/bunny-belly-rub--kXh7vDrH0",                       // belly rub
+		"https://klipy.com/gifs/cat-eating-cute-cat--kQkYp911L",                   // cat eating
+		"https://klipy.com/gifs/wisp-kitten-3--kdym18nNy",                         // very baby kitten party hat
 	}
 	BoredMessages = [...]string{
 		"I'M SO BORED OMG",
@@ -468,6 +479,11 @@ func GetRandomMessage() string {
 	return fmt.Sprintf("%s %s", Replies[messageIdx], getRandEmoticon())
 }
 
+func GetRandomGif() string {
+	var messageIdx = rand.IntN(len(Gifs))
+	return Gifs[messageIdx]
+}
+
 func reply(s *discordgo.Session, m *discordgo.Message, message string) error {
 	time.Sleep(ReplyTime)
 
@@ -513,12 +529,19 @@ func replyRandom(s *discordgo.Session, m *discordgo.Message) error {
 		}
 	}
 
-	if len(filtered) <= 0 {
-		return reply(s, m, GetRandomMessage())
+	if len(filtered) > 0 {
+		var userID = filtered[rand.IntN(len(filtered))].ID
+		return reply(s, m, GetRandomComment(userID))
 	}
 
-	var userID = filtered[rand.IntN(len(filtered))].ID
-	return reply(s, m, GetRandomComment(userID))
+	var msg string
+	if rand.Float64() <= ReplyWithGifChance {
+		msg = GetRandomGif()
+	} else {
+		msg = GetRandomMessage()
+	}
+
+	return reply(s, m, msg)
 }
 
 func mentionsBot(s *discordgo.Session, m *discordgo.Message) bool {
@@ -577,10 +600,6 @@ func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if DebugBuild {
-		reply(s, m.Message, "hey a bit out of topic but like i played subnautica last night and omg... fih... 🐟\nhttps://tenor.com/view/fissh-vaporeon-ok-dont-warning-gif-7371806276035619298")
-		return
-	}
 	if s.State.User.ID == m.Author.ID {
 		HandleSelfMessages(s, m)
 		return
