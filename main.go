@@ -64,9 +64,8 @@ var (
 		">:3c",
 	}
 	Comments = [...]string{
-		"<@%s> unnerves me a bit i find it kind of hot",
+		"<@%s> unnerves me a bit i find it kind of adorb",
 		"hey <@%s> guess what CHIKIN NUGETS",
-		"*unmolests <@%s>* no need to thank me",
 		"i carried <@%s>s children 3/5 pretty good",
 		"when i look at <@%s> i feel a lot of feelings, like, constipation, euphoria",
 		"me and <@%s> are twins i love them so much they mean a lot to me",
@@ -111,6 +110,8 @@ var (
 		"nuhuh",
 		"noperinos",
 		"idk seems kinda sus",
+		"idk",
+		"guh",
 		"that's so based omg",
 		"yeah no that's totally it actually",
 		"i like that you're weird like that",
@@ -120,7 +121,7 @@ var (
 		"whatever goob, I ain't gonna listent to a goob",
 		"uh- a- uh- y-you pwettyy...",
 		"so we're not gonna talk about what you sent me in dms???",
-		"uh- you talk a lot uh- *impregnates you*, there, now shush",
+		"uh- you talk a lot uh- *flips you upside down*, there, now shush",
 		"woa",
 		"oh really",
 		"that's crazy",
@@ -140,9 +141,8 @@ var (
 		"aww.. dih.. oh- wait, what? oh! oh ye ye",
 		"idk man im just hungry",
 		"no way",
-		"youd look so cute pregnant, you know that?",
+		"youd look so cute pregnant tbh",
 		"shhh~ <3",
-		"i dont regret what we did last night~",
 		"whatever!!!!! you said we were going to costco to get candy and hot dogs!!! are we going soon??",
 		"not what im into but i dig it",
 		"im so so so sorry..",
@@ -159,14 +159,12 @@ var (
 		"imma sit this one out.. on your lap",
 		"OKAY I GUESS!!!!!",
 		"*jitters from too much caffeine*",
-		"lemme get in your pants im cold",
 		"youre silly",
 		"something i really really love about you is that you, huh... you know your place?",
 		"maybe the two of us could be... more? like... friends...? maybe...?",
 		"OKAY I ADMIT I HAVE A SECRET TO TELL YOU",
-		"please send more messages like that~",
+		"that made me laugh",
 		"okay i trust you...",
-		"pwease tell me more, im close... to know what youre talking about",
 		"youre so real for that",
 		"me...? 👉👈",
 		"youre like a blahaj but not like a shark like in the shape of you",
@@ -186,7 +184,7 @@ var (
 		"sorry wait a moment i lost my phone",
 		"im over stimulated rn... but huh... yeah",
 		"im over stimulated rn... so... no",
-		"thats what i call a pregnancy kink",
+		"mmh what you said was quite pregnant (Merriam-Webster. Pregnant (def. 3).)",
 	}
 	BoredMessages = [...]string{
 		"I'M SO BORED OMG",
@@ -310,10 +308,14 @@ func getRandEmoticon() string {
 }
 
 func HasSticker(s *discordgo.Session, guildID string, stickerID string) bool {
-	var guild, err = s.Guild(guildID)
+	var guild, err = s.State.Guild(guildID)
 	if err != nil {
-		log.Printf("[ERROR] unable to find guild %v\n", guildID)
-		return false
+		log.Println("[DEBUG] unable to get guild out of cache, fetching:", err)
+		guild, err = s.Guild(guildID)
+		if err != nil {
+			log.Printf("[ERROR] unable to find guild %v: %v\n", guildID, err)
+			return false
+		}
 	}
 
 	for _, sticker := range guild.Stickers {
@@ -469,16 +471,13 @@ func replyRandom(s *discordgo.Session, m *discordgo.Message) error {
 
 	var filtered []*discordgo.User
 	for _, u := range m.Mentions {
-		if u.ID != s.State.User.ID ||
-			slices.Contains(BlacklistedUsers[:], u.ID) {
-			filtered = append(filtered, u)
-		}
+		var isReply = u.ID == refAuthorID &&
+			!strings.Contains(m.Content, "<@"+u.ID+">")
 
-		// Skip the replied-to user except if they were also @mentioned
-		// in the message text itself
-		if u.ID == refAuthorID &&
-			!strings.Contains(m.Content, "<@"+u.ID+">") {
-			continue
+		if u.ID != s.State.User.ID &&
+			!slices.Contains(BlacklistedUsers[:], u.ID) &&
+			!isReply {
+			filtered = append(filtered, u)
 		}
 	}
 
