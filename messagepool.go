@@ -1,8 +1,12 @@
 package main
 
+import (
+	"math/rand/v2"
+)
+
 type MessagePool struct {
 	messages []string
-	shuffler *IndexShuffler
+	shuffler *IndexShuffler // currently unused
 }
 
 func NewMessagePool(messages []string) *MessagePool {
@@ -12,5 +16,6 @@ func NewMessagePool(messages []string) *MessagePool {
 }
 
 func (mp *MessagePool) Next() string {
-	return mp.messages[mp.shuffler.Next()]
+	// return mp.messages[mp.shuffler.Next()]
+	return mp.messages[rand.IntN(len(mp.messages))]
 }
