@@ -382,7 +382,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if m.ChannelID == WelcomeChannelID {
+	if m.ChannelID == BotChannelID {
 		select {
 		case ResetBoredTimer <- struct{}{}:
 		default:
@@ -565,7 +565,7 @@ func boredTimerLoop(s *discordgo.Session) {
 				finalMessage = "[DEBUG] " + finalMessage
 			}
 
-			_, err := s.ChannelMessageSend(WelcomeChannelID, finalMessage)
+			_, err := s.ChannelMessageSend(BotChannelID, finalMessage)
 			if err != nil {
 				log.Println("[ERROR] cannot send bored message:", err)
 			}
