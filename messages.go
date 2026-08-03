@@ -60,6 +60,20 @@ var (
 		"<@%s> i love your face the way it is deadass one of the most beautiful faces",
 		"when i am overstimulated and <@%s> is here i feel so much better",
 		"hey <@%s> do you think i may be autistic?",
+		"*throws <@%s> in the garbage and jumps along in it*",
+		"*puts a mistle toe on top of polly and <@%s> and leaves*",
+		"*cries next to <@%s>*",
+		"honestly im feeling kind of depressed rn and i just wished <@%s> was there to cuddle me",
+		"<@%s> is s tier",
+		"<@%s> can be really f tier when theyre mean... but thats okay i deserve it sometimes",
+		"i feel <@%s> doesnt like me but thats okay i dont like me either",
+		"hey <@%s> i bought you a blahaj but like i lost it im so mad",
+		"hey <@%s> i lost my choker can i borrow yours",
+		"<@%s> should clicker train me fr",
+		"<@%s> is silly maxxing fr",
+		"*opens a bottle of soda and hands it to <@%s>* there, a soda, just for you, no cap",
+		"sometimes it feels like my body parts were stitched to me at birth and theyre not mine but <@%s> feels like they always belong in my heart",
+		"<@%s> wubaduba-dub is that true?",
 	}
 	Replies = [...]string{
 		"uhuh",
@@ -209,6 +223,11 @@ var (
 		"👍",
 		"mayhaps",
 		"perchance",
+		"thank god im not clicker trained",
+		"listen not rn im constipated must be all these months of built up girl things...",
+		"yeah im chillin",
+		"nah not really chillin rn sorry",
+		"lets all forgive each other and drink some rc cola",
 	}
 	Gifs = [...]string{
 		"https://klipy.com/gifs/emoji-head-pat",                                   // head pats

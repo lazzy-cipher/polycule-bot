@@ -274,30 +274,28 @@ func GetRandomComment(userID string) string {
 }
 
 func replyRandom(s *discordgo.Session, m *discordgo.Message) error {
-	if len(m.Mentions) <= 0 {
-		return reply(s, m, GetRandomMessage())
-	}
-
-	var refAuthorID string
-	if m.ReferencedMessage != nil {
-		refAuthorID = m.ReferencedMessage.Author.ID
-	}
-
-	var filtered []*discordgo.User
-	for _, u := range m.Mentions {
-		var isReply = u.ID == refAuthorID &&
-			!strings.Contains(m.Content, "<@"+u.ID+">")
-
-		if u.ID != s.State.User.ID &&
-			!slices.Contains(BlacklistedUsers[:], u.ID) &&
-			!isReply {
-			filtered = append(filtered, u)
+	if len(m.Mentions) > 0 {
+		var refAuthorID string
+		if m.ReferencedMessage != nil {
+			refAuthorID = m.ReferencedMessage.Author.ID
 		}
-	}
 
-	if len(filtered) > 0 {
-		var userID = filtered[rand.IntN(len(filtered))].ID
-		return reply(s, m, GetRandomComment(userID))
+		var filtered []*discordgo.User
+		for _, u := range m.Mentions {
+			var isReply = u.ID == refAuthorID &&
+				!strings.Contains(m.Content, "<@"+u.ID+">")
+
+			if u.ID != s.State.User.ID &&
+				!slices.Contains(BlacklistedUsers[:], u.ID) &&
+				!isReply {
+				filtered = append(filtered, u)
+			}
+		}
+
+		if len(filtered) > 0 {
+			var userID = filtered[rand.IntN(len(filtered))].ID
+			return reply(s, m, GetRandomComment(userID))
+		}
 	}
 
 	var msg string
@@ -459,7 +457,12 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if err != nil {
 				log.Println("[ERROR]", err)
 			}
-		} else if rand.Float64() <= ReplyToReplyChance {
+		} else if strings.Contains(m.ReferencedMessage.Content, "wubaduba-dub is that true?") {
+			var err = reply(s, m.Message, "wow you go big guy!")
+			if err != nil {
+				log.Println("[ERROR]", err)
+			}			
+		}else if rand.Float64() <= ReplyToReplyChance {
 			var err = replyRandom(s, m.Message)
 			if err != nil {
 				log.Println("[ERROR]", err)
