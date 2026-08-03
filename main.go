@@ -1,5 +1,7 @@
 package main
 
+// TODO: make Polly follow up after saying "I HAVE A SECRET TO TELL YOU" including "chicken butt"
+
 import (
 	"flag"
 	"fmt"
