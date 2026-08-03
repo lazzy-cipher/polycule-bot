@@ -461,8 +461,8 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 			var err = reply(s, m.Message, "wow you go big guy!")
 			if err != nil {
 				log.Println("[ERROR]", err)
-			}			
-		}else if rand.Float64() <= ReplyToReplyChance {
+			}
+		} else if rand.Float64() <= ReplyToReplyChance {
 			var err = replyRandom(s, m.Message)
 			if err != nil {
 				log.Println("[ERROR]", err)
@@ -582,7 +582,6 @@ func boredTimerLoop(s *discordgo.Session) {
 					}
 				}()
 			}
-
 
 			timer.Reset(TimeBeforeBored)
 			alreadySaidBored = true

@@ -245,6 +245,13 @@ var (
 		"https://klipy.com/gifs/eating-eating-food-3",                             // eat and run
 		"https://klipy.com/gifs/cat-silly-cat-7--ks5ugIsAL",                       // fold cat in half
 		"https://klipy.com/gifs/whatever-go-my-true",                              // true
+		"https://klipy.com/gifs/thank-you-alan-red",                               // allan thank you
+		"https://klipy.com/gifs/cat-cam-cat-camera",                               // cat eat
+		"https://klipy.com/gifs/my-true",                                          // my true reaction cat
+		"https://klipy.com/gifs/mmmmmmm-6",                                        // cat cream mmmmmmm
+		"https://klipy.com/gifs/whatever-go-my-estrogen-whatever-go-my-scarab",    // go my estrogen
+		"https://klipy.com/gifs/estrogen-hrt-Yij",                                 // estrogen
+		"https://klipy.com/gifs/cat-cats-585"                                      // cat scream
 	}
 	Bored = [...]string{
 		"I'M SO BORED OMG",
