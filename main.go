@@ -28,6 +28,7 @@ const (
 	ReplyTime                        = 2 * time.Second
 	ReplyToTypingTime                = 500 * time.Millisecond
 	ReactTime                        = 1 * time.Second
+	FollowUpTime                     = 30 * time.Minute
 	ReplyToTypingChance              = 0.005 // 0.5%
 	ReplyToReplyChance               = 1.0   // 1%
 	ReplyWithGifChance               = 0.05  // 5%, otherwise text
@@ -563,14 +564,22 @@ func boredTimerLoop(s *discordgo.Session) {
 			var message = BoredPool.Next()
 			var emoticon = EmoticonsPool.Next()
 			var finalMessage = fmt.Sprintf("%s %s", message, emoticon)
-			if DebugBuild {
-				finalMessage = "[DEBUG] " + finalMessage
-			}
 
-			_, err := s.ChannelMessageSend(BotChannelID, finalMessage)
+			var msg, err = s.ChannelMessageSend(BotChannelID, finalMessage)
 			if err != nil {
 				log.Println("[ERROR] cannot send bored message:", err)
 			}
+
+			if finalMessage == "hehe found the cookie jar" {
+				go func() {
+					<-time.After(FollowUpTime)
+					err = reply(s, msg, "goshshh imn sho ful...........")
+					if err != nil {
+						log.Println("[ERROR] cannot send bored message:", err)
+					}
+				}()
+			}
+
 
 			timer.Reset(TimeBeforeBored)
 			alreadySaidBored = true

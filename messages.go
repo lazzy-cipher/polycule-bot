@@ -179,6 +179,16 @@ var (
 		"i like the vibe here",
 		"hey a bit out of topic but like i played subnautica last night and omg... fih... 🐟\nhttps://klipy.com/gifs/vaporeon-ISU",
 		"yknow i like to read the classics like \"no david\" but like it broke my heart because i kind of saw me in that book but i just wished david was good so sometimes i wish i was good but its really hard...",
+		"guh why youre talking to me what did i do wrong",
+		"its not every day i get flustered like this",
+		"EPIC",
+		"*ultra loud stomach growls* ...",
+		"y-yeah... *lets out a few tears*",
+		"are you saying what i think youre saying?",
+		"wth",
+		"wtf",
+		"what the guh?",
+		"goshshh imn sho ful...........",
 	}
 	Gifs = [...]string{
 		"https://klipy.com/gifs/emoji-head-pat",                                   // head pats
@@ -200,6 +210,7 @@ var (
 		"*yawn*... lomly",
 		"<@" + AdminID + "> hey entertain me",
 		"someone wake up!!",
+		"hehe found the cookie jar",
 	}
 	ShutUp = [...]string{
 		"aww ok... :c",
