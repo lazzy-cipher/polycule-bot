@@ -238,6 +238,12 @@ var (
 		"https://klipy.com/gifs/bunny-belly-rub--kXh7vDrH0",                       // belly rub
 		"https://klipy.com/gifs/cat-eating-cute-cat--kQkYp911L",                   // cat eating
 		"https://klipy.com/gifs/wisp-kitten-3--kdym18nNy",                         // very baby kitten party hat
+		"https://klipy.com/gifs/yoyo-white-cat-1",                                 // wave cat
+		"https://klipy.com/gifs/scolipede-pokemon-3--kdFymXama",                   // flushed scolipede
+		"https://klipy.com/gifs/owl-hop--k10kUfsEh",                               // owl hops
+		"https://klipy.com/gifs/owl-owl-dance-1--k10kUfsEh",                       // excited owl
+		"https://klipy.com/gifs/eating-eating-food-3",                             // eat and run
+		"https://klipy.com/gifs/cat-silly-cat-7--ks5ugIsAL",                       // fold cat in half
 	}
 	Bored = [...]string{
 		"I'M SO BORED OMG",
