@@ -244,6 +244,7 @@ var (
 		"https://klipy.com/gifs/owl-owl-dance-1--k10kUfsEh",                       // excited owl
 		"https://klipy.com/gifs/eating-eating-food-3",                             // eat and run
 		"https://klipy.com/gifs/cat-silly-cat-7--ks5ugIsAL",                       // fold cat in half
+		"https://klipy.com/gifs/whatever-go-my-true",                              // true
 	}
 	Bored = [...]string{
 		"I'M SO BORED OMG",
