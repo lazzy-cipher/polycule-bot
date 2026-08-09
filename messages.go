@@ -74,6 +74,7 @@ var (
 		"*opens a bottle of soda and hands it to <@%s>* there, a soda, just for you, no cap",
 		"sometimes it feels like my body parts were stitched to me at birth and theyre not mine but <@%s> feels like they always belong in my heart",
 		"<@%s> wubaduba-dub is that true?",
+		"<@%s> rock paper scissors go!",
 	}
 	Replies = [...]string{
 		"uhuh",
@@ -251,7 +252,13 @@ var (
 		"https://klipy.com/gifs/mmmmmmm-6",                                        // cat cream mmmmmmm
 		"https://klipy.com/gifs/whatever-go-my-estrogen-whatever-go-my-scarab",    // go my estrogen
 		"https://klipy.com/gifs/estrogen-hrt-Yij",                                 // estrogen
-		"https://klipy.com/gifs/cat-cats-585"                                      // cat scream
+		"https://klipy.com/gifs/cat-cats-585",                                     // cat scream
+		"https://klipy.com/gifs/owl-sneaky-2",                                     // owl sneak
+	}
+	Conversation = map[string]string {
+		"doctor monster": "well im never telling youu",
+		"wubaduba-dub is that true?": "wow you go big guy!",
+		"rock paper scissors go!": "i win uwu",
 	}
 	Bored = [...]string{
 		"I'M SO BORED OMG",

@@ -452,17 +452,19 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Always reply to replies
 	if m.ReferencedMessage != nil &&
 		m.ReferencedMessage.Author.ID == s.State.User.ID {
-		if strings.Contains(m.ReferencedMessage.Content, "doctor monster") {
-			var err = reply(s, m.Message, "well im never telling youu")
-			if err != nil {
-				log.Println("[ERROR]", err)
+		var conversed = false
+		for key, val := range Conversation {
+			if strings.Contains(m.ReferencedMessage.Content, key) {
+				var err = reply(s, m.Message, val)
+				if err != nil {
+					log.Println("[ERROR]", err)
+				}
+				conversed = true
+				break
 			}
-		} else if strings.Contains(m.ReferencedMessage.Content, "wubaduba-dub is that true?") {
-			var err = reply(s, m.Message, "wow you go big guy!")
-			if err != nil {
-				log.Println("[ERROR]", err)
-			}
-		} else if rand.Float64() <= ReplyToReplyChance {
+		}
+
+		if !conversed && rand.Float64() <= ReplyToReplyChance {
 			var err = replyRandom(s, m.Message)
 			if err != nil {
 				log.Println("[ERROR]", err)
