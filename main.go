@@ -575,7 +575,7 @@ func boredTimerLoop(s *discordgo.Session) {
 				log.Println("[ERROR] cannot send bored message:", err)
 			}
 
-			if finalMessage == "hehe found the cookie jar" {
+			if message == "hehe found the cookie jar" {
 				go func() {
 					<-time.After(FollowUpTime)
 					err = reply(s, msg, "goshshh imn sho ful...........")
