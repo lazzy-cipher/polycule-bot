@@ -406,7 +406,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Ignore blacklisted users
-	if IsMessageAllowed(m.ChannelID, m.Author.ID) {
+	if !IsMessageAllowed(m.ChannelID, m.Author.ID) {
 		return
 	}
 
