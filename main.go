@@ -35,7 +35,7 @@ const (
 	ReplyToMessageChance             = 0.02  // 2%
 	ReplyToMessageInBotChannelChance = 0.1   // 10%
 	ReactToMessageChance             = 0.04  // 4%
-	Version                          = "1.0.3"
+	Version                          = "1.0.4"
 	TimeBeforeBored                  = 2 * time.Hour
 	ShutUpTime                       = 2 * time.Hour
 )
@@ -65,6 +65,9 @@ var (
 	}
 	BlacklistedUsers = [...]string{
 		"1466282667258675324", // bardownbuddy
+	}
+	WhitelistedChannels = [...]string{
+		"1532793476746449098",
 	}
 )
 
@@ -143,6 +146,18 @@ func assertInitState() {
 	if crash {
 		log.Fatal("[ERROR] invalid initial program state")
 	}
+}
+
+func IsMessageAllowed(inChannelID string, replyToUserID string) bool {
+	if slices.Contains(WhitelistedChannels[:], inChannelID) {
+		return true
+	}
+
+	if slices.Contains(BlacklistedUsers[:], replyToUserID) {
+		return false
+	}
+
+	return true
 }
 
 func HasSticker(s *discordgo.Session, guildID string, stickerID string) bool {
@@ -226,7 +241,7 @@ func guildMemberStartsTyping(s *discordgo.Session, e *discordgo.TypingStart) {
 	}
 
 	if rand.Float64() > ReplyToTypingChance ||
-		slices.Contains(BlacklistedUsers[:], e.UserID) {
+		!IsMessageAllowed(e.ChannelID, e.UserID) {
 		return
 	}
 
@@ -286,7 +301,7 @@ func replyRandom(s *discordgo.Session, m *discordgo.Message) error {
 				!strings.Contains(m.Content, "<@"+u.ID+">")
 
 			if u.ID != s.State.User.ID &&
-				!slices.Contains(BlacklistedUsers[:], u.ID) &&
+				IsMessageAllowed(m.ChannelID, m.ID) &&
 				!isReply {
 				filtered = append(filtered, u)
 			}
@@ -391,7 +406,7 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Ignore blacklisted users
-	if slices.Contains(BlacklistedUsers[:], m.Author.ID) {
+	if IsMessageAllowed(m.ChannelID, m.Author.ID) {
 		return
 	}
 
