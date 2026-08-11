@@ -254,6 +254,7 @@ var (
 		"https://klipy.com/gifs/estrogen-hrt-Yij",                                 // estrogen
 		"https://klipy.com/gifs/cat-cats-585",                                     // cat scream
 		"https://klipy.com/gifs/owl-sneaky-2",                                     // owl sneak
+		"https://klipy.com/gifs/dont-dm-me-dont-pregnant-man-react-me--ksknq4Pxm", // mpreg react
 	}
 	Conversation = map[string]string {
 		"doctor monster": "well im never telling youu",
