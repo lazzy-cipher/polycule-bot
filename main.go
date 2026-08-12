@@ -31,7 +31,7 @@ const (
 	FollowUpTime                     = 30 * time.Minute
 	ReplyToTypingChance              = 0.005 // 0.5%
 	ReplyToReplyChance               = 1.0   // 1%
-	ReplyWithGifChance               = 0.05  // 5%, otherwise text
+	ReplyWithGifChance               = 0.10  // 10%, otherwise text
 	ReplyToMessageChance             = 0.02  // 2%
 	ReplyToMessageInBotChannelChance = 0.1   // 10%
 	ReactToMessageChance             = 0.04  // 4%
