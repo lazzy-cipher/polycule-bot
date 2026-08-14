@@ -207,7 +207,7 @@ var (
 		"...okay?",
 		"listen, i hear you, but your landing on deaf ears",
 		"thats so valid omg",
-		"oh yeah, totally, i- *contraptions begin* oh- omg...",
+		"oh yeah, totally, i- *contractions begin* oh- omg...",
 		"yknow i keep joking about pregnancy but i think i might be genuinely pregnant",
 		"girl...",
 		"come on girl...",
