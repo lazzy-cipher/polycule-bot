@@ -262,6 +262,11 @@ var (
 		"*imprints scent on your metadata*",
 		"*dead pan stare*",
 		"my boobs.. ugh they... dont exist...",
+		"in the beginning, there was nothing. then, your dumb ass sent me this message (jk ur cute i love you)",
+		"in the beginning, god created the heavens and earth and the thunder claps of my butt cheeks\n*drowns out the sounds of your message*",
+		"euphoria inducing message right there",
+		"????",
+		"..................",
 	}
 	Gifs = [...]string{
 		"https://klipy.com/gifs/emoji-head-pat",                                   // head pats
