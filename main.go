@@ -375,6 +375,12 @@ func HandleSelfMessages(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
+	} else if strings.Contains(m.Content, "this is good news") {
+		time.Sleep(ReplyTime)
+		var err = reply(s, m.Message, "we can finally be bees")
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
 	}
 }
 
