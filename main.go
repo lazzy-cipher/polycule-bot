@@ -512,6 +512,13 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			log.Printf("[ERROR] %s\n", err)
 		}
+	} else if strings.Contains(lowered, "good news") ||
+		strings.Contains(lowered, "bee") {
+		var bees = "this is good news " + EmoticonsPool.Next()
+		var err = reply(s, m.Message, bees)
+		if err != nil {
+			log.Printf("[ERROR] %s\n", err)
+		}
 	} else if talksAboutSelf ||
 		rand.Float64() <= chance {
 		var err = replyRandom(s, m.Message)
