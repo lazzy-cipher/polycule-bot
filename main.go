@@ -513,7 +513,6 @@ func replied(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Printf("[ERROR] %s\n", err)
 		}
 	} else if strings.Contains(lowered, "good news") ||
-		strings.Contains(lowered, "bee") ||
 		strings.Contains(lowered, "🐝") {
 		var bees = "this is good news " + EmoticonsPool.Next()
 		var err = reply(s, m.Message, bees)
