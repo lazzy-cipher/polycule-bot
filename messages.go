@@ -257,7 +257,7 @@ var (
 		"foolishness",
 		"meaningless",
 		"thinking of a fursona species rn...",
-		"lazzy used to read me bed time stories when he was programming me and what you said reminded me of that i missed them so much my favorite one was with the owls",
+		"lazzy used to read me bed time stories when she was programming me and what you said reminded me of that i missed them so much my favorite one was with the owls",
 		"*snuggles up to you and purrs*",
 		"*imprints scent on your metadata*",
 		"*dead pan stare*",
