@@ -341,7 +341,6 @@ var (
 		"omg <@%s> haaiiii",
 		"I find it so hot when <@%s> types",
 		"omg <@%s> hi okay omg I wanted to tell you something but i forgor",
-		"<@%s> sending nudes???",
 	}
 )
 
